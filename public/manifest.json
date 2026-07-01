@@ -1,0 +1,13 @@
+{
+  "name": "Dharmendra Baria — Portfolio",
+  "short_name": "DB Portfolio",
+  "description": "Full Stack MERN Developer Portfolio",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0A",
+  "theme_color": "#2563EB",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
