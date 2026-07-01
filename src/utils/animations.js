@@ -45,12 +45,16 @@ export const scaleIn = {
   },
 };
 
+/**
+ * blurIn — removed filter:blur() animation (triggers full repaint every frame).
+ * Replaced with opacity + y + subtle scale for an equivalent soft-focus effect.
+ */
 export const blurIn = {
-  hidden: { opacity: 0, filter: 'blur(10px)', y: 20 },
+  hidden: { opacity: 0, y: 20, scale: 0.97 },
   show: {
     opacity: 1,
-    filter: 'blur(0px)',
     y: 0,
+    scale: 1,
     transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
   },
 };

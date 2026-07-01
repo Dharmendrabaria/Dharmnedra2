@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SEQUENCE = [
@@ -15,15 +15,23 @@ const SEQUENCE = [
   { text: '→  Launching portfolio...', delay: 3200 },
 ];
 
-const Preloader = ({ onComplete }) => {
+const getLineClass = (line) => {
+  if (line.startsWith('✓')) return 'text-green-400 font-semibold';
+  if (line.startsWith('→')) return 'text-accent';
+  if (line.startsWith('$')) return 'text-white';
+  if (line.startsWith('█')) return 'text-primary';
+  if (line.startsWith('Compiling')) return 'text-yellow-400';
+  return 'text-gray-500';
+};
+
+const Preloader = memo(({ onComplete }) => {
   const [visibleLines, setVisibleLines] = useState([]);
   const [progress, setProgress] = useState(0);
-  const [exiting, setExiting] = useState(false);
 
   useEffect(() => {
     const timers = [];
 
-    SEQUENCE.forEach((item, i) => {
+    SEQUENCE.forEach((item) => {
       timers.push(setTimeout(() => {
         setVisibleLines((prev) => [...prev, item.text]);
       }, item.delay));
@@ -37,9 +45,8 @@ const Preloader = ({ onComplete }) => {
       });
     }, 50);
 
-    // Exit
+    // Exit — use opacity transition instead of filter:blur (expensive)
     timers.push(setTimeout(() => {
-      setExiting(true);
       setTimeout(() => onComplete(), 800);
     }, 3600));
 
@@ -52,7 +59,7 @@ const Preloader = ({ onComplete }) => {
   return (
     <motion.div
       className="fixed inset-0 z-[200] bg-[#0A0A0A] flex flex-col items-center justify-center"
-      exit={{ opacity: 0, scale: 1.05, filter: 'blur(8px)' }}
+      exit={{ opacity: 0, scale: 1.05 }}
       transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
     >
       {/* Ambient glow */}
@@ -79,14 +86,7 @@ const Preloader = ({ onComplete }) => {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3 }}
-                  className={
-                    line.startsWith('✓') ? 'text-green-400 font-semibold' :
-                    line.startsWith('→') ? 'text-accent' :
-                    line.startsWith('$') ? 'text-white' :
-                    line.startsWith('█') ? 'text-primary' :
-                    line.startsWith('Compiling') ? 'text-yellow-400' :
-                    'text-gray-500'
-                  }
+                  className={getLineClass(line)}
                 >
                   {line || '\u00A0'}
                 </motion.div>
@@ -134,6 +134,7 @@ const Preloader = ({ onComplete }) => {
       </div>
     </motion.div>
   );
-};
+});
+Preloader.displayName = 'Preloader';
 
 export default Preloader;

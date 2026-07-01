@@ -1,7 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiSearch, FiUser, FiCode, FiMail, FiDownload, FiGithub, FiLinkedin } from 'react-icons/fi';
 import { NAV_LINKS, SITE } from '../../utils/constants';
+
+function scrollTo(href) {
+  const el = document.querySelector(href);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
 
 const COMMANDS = [
   { label: 'Go to Home',      action: () => scrollTo('#home'),         icon: FiUser },
@@ -15,16 +20,15 @@ const COMMANDS = [
   { label: 'Send Email',      action: () => window.open(`mailto:${SITE.email}`),   icon: FiMail },
 ];
 
-function scrollTo(href) {
-  const el = document.querySelector(href);
-  if (el) el.scrollIntoView({ behavior: 'smooth' });
-}
-
-const CommandPalette = ({ open, onClose }) => {
+const CommandPalette = memo(({ open, onClose }) => {
   const [query, setQuery] = useState('');
   const inputRef = useRef(null);
 
-  const filtered = COMMANDS.filter((c) => c.label.toLowerCase().includes(query.toLowerCase()));
+  // useMemo — only recompute when query changes
+  const filtered = useMemo(() =>
+    COMMANDS.filter((c) => c.label.toLowerCase().includes(query.toLowerCase())),
+    [query]
+  );
 
   useEffect(() => {
     if (open) { setQuery(''); setTimeout(() => inputRef.current?.focus(), 50); }
@@ -96,6 +100,7 @@ const CommandPalette = ({ open, onClose }) => {
       )}
     </AnimatePresence>
   );
-};
+});
+CommandPalette.displayName = 'CommandPalette';
 
 export default CommandPalette;

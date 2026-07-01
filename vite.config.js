@@ -7,22 +7,19 @@ export default defineConfig({
   resolve: { alias: { '@': resolve(__dirname, 'src') } },
   build: {
     target: 'esnext',
-    minify: 'terser',
     cssMinify: true,
     sourcemap: false,
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'three-vendor': ['three', '@react-three/fiber', '@react-three/drei'],
-          'motion-vendor': ['framer-motion', 'gsap'],
-          'ui-vendor': ['react-icons', 'swiper'],
+        manualChunks(id) {
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || id.includes('node_modules/react-router-dom/'))
+            return 'react-vendor';
+          if (id.includes('node_modules/three/') || id.includes('node_modules/@react-three/'))
+            return 'three-vendor';
+          if (id.includes('node_modules/framer-motion/') || id.includes('node_modules/gsap/'))
+            return 'motion-vendor';
+          if (id.includes('node_modules/react-icons/') || id.includes('node_modules/swiper/'))
+            return 'ui-vendor';
         },
       },
     },

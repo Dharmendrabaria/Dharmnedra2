@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaWhatsapp, FaLinkedin, FaGithub, FaEnvelope, FaMapMarkerAlt, FaPhone } from 'react-icons/fa';
+import { FaWhatsapp, FaLinkedin, FaGithub, FaEnvelope, FaMapMarkerAlt } from 'react-icons/fa';
 import { FiSend, FiCheck, FiAlertCircle } from 'react-icons/fi';
 import { SITE } from '../../utils/constants';
 import { sendEmail } from '../../services/emailService';
@@ -16,13 +16,39 @@ const CONTACT_CARDS = [
 const inputClass = `w-full glass border border-white/10 rounded-xl px-5 py-4 text-white placeholder-gray-600 text-sm outline-none 
   focus:border-primary/50 transition-all duration-300 bg-transparent font-inter`;
 
-const Contact = () => {
+const shakeVariant = {
+  shake: { x: [0, -8, 8, -8, 8, 0], transition: { duration: 0.5 } },
+  normal: { x: 0 },
+};
+
+/**
+ * ContactCard — memoized to prevent re-render when form state changes
+ */
+const ContactCard = memo(({ icon: Icon, label, value, href, color }) => (
+  <a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="flex items-center gap-4 glass-card rounded-2xl p-4 border border-white/5 hover:border-primary/30 transition-all duration-300 group"
+  >
+    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110" style={{ background: `${color}20` }}>
+      <Icon size={18} style={{ color }} />
+    </div>
+    <div>
+      <div className="text-xs text-gray-600 uppercase tracking-wider">{label}</div>
+      <div className="text-white text-sm font-medium group-hover:text-primary transition-colors">{value}</div>
+    </div>
+  </a>
+));
+ContactCard.displayName = 'ContactCard';
+
+const Contact = memo(() => {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState('idle'); // idle | sending | success | error
   const [shakeField, setShakeField] = useState('');
 
-  const validate = () => {
+  const validate = useCallback(() => {
     const e = {};
     if (!form.name.trim())    e.name    = 'Name is required';
     if (!form.email.trim())   e.email   = 'Email is required';
@@ -30,9 +56,9 @@ const Contact = () => {
     if (!form.subject.trim()) e.subject = 'Subject is required';
     if (!form.message.trim()) e.message = 'Message is required';
     return e;
-  };
+  }, [form]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) {
@@ -56,17 +82,19 @@ const Contact = () => {
       setStatus('error');
     }
     setTimeout(() => setStatus('idle'), 5000);
-  };
+  }, [form, validate]);
 
-  const handleChange = (field, val) => {
+  const handleChange = useCallback((field, val) => {
     setForm((f) => ({ ...f, [field]: val }));
-    if (errors[field]) setErrors((e) => ({ ...e, [field]: '' }));
-  };
-
-  const shakeVariant = {
-    shake: { x: [0, -8, 8, -8, 8, 0], transition: { duration: 0.5 } },
-    normal: { x: 0 },
-  };
+    setErrors((e) => {
+      if (e[field]) {
+        const next = { ...e };
+        delete next[field];
+        return next;
+      }
+      return e;
+    });
+  }, []);
 
   return (
     <section id="contact" className="relative py-24 md:py-36 bg-[#0A0A0A] overflow-hidden">
@@ -106,24 +134,10 @@ const Contact = () => {
               </p>
             </div>
 
-            {/* Contact cards */}
+            {/* Contact cards — memoized, won't re-render with form state */}
             <div className="space-y-3">
-              {CONTACT_CARDS.map(({ icon: Icon, label, value, href, color }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-4 glass-card rounded-2xl p-4 border border-white/5 hover:border-primary/30 transition-all duration-300 group"
-                >
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110" style={{ background: `${color}20` }}>
-                    <Icon size={18} style={{ color }} />
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-600 uppercase tracking-wider">{label}</div>
-                    <div className="text-white text-sm font-medium group-hover:text-primary transition-colors">{value}</div>
-                  </div>
-                </a>
+              {CONTACT_CARDS.map((card) => (
+                <ContactCard key={card.label} {...card} />
               ))}
             </div>
 
@@ -262,6 +276,7 @@ const Contact = () => {
       </div>
     </section>
   );
-};
+});
+Contact.displayName = 'Contact';
 
 export default Contact;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, memo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { FaGithub, FaStar, FaUsers, FaCode } from 'react-icons/fa';
 import { fetchGithubStats } from '../../services/githubAPI';
@@ -11,7 +11,7 @@ const LANG_COLORS = {
   HTML: '#E34F26', 'C++': '#00599C', Python: '#3776AB', default: '#6366f1',
 };
 
-const StatBox = ({ icon: Icon, value, suffix = '', label, color }) => {
+const StatBox = memo(({ icon: Icon, value, suffix = '', label, color }) => {
   const { count, ref } = useCounter(value, 1500);
   return (
     <div ref={ref} className="glass-card rounded-2xl p-6 flex flex-col items-center text-center border border-white/5 hover:border-primary/20 transition-colors group">
@@ -22,17 +22,45 @@ const StatBox = ({ icon: Icon, value, suffix = '', label, color }) => {
       <div className="text-gray-500 text-sm mt-1">{label}</div>
     </div>
   );
-};
+});
+StatBox.displayName = 'StatBox';
 
-const GithubStats = () => {
+const LanguageBar = memo(({ lang, pct }) => (
+  <div>
+    <div className="flex justify-between text-sm mb-1.5">
+      <span className="text-gray-400 flex items-center gap-2">
+        <span className="w-2.5 h-2.5 rounded-full" style={{ background: LANG_COLORS[lang] || LANG_COLORS.default }} />
+        {lang}
+      </span>
+      <span className="text-gray-600 font-fira">{pct}%</span>
+    </div>
+    <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden">
+      <motion.div
+        initial={{ width: 0 }}
+        whileInView={{ width: `${pct}%` }}
+        viewport={{ once: true }}
+        transition={{ duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        className="h-full rounded-full"
+        style={{ background: LANG_COLORS[lang] || LANG_COLORS.default }}
+      />
+    </div>
+  </div>
+));
+LanguageBar.displayName = 'LanguageBar';
+
+const GithubStats = memo(() => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     fetchGithubStats(SITE.githubUsername).then((data) => {
-      setStats(data);
-      setLoading(false);
+      if (!cancelled) {
+        setStats(data);
+        setLoading(false);
+      }
     });
+    return () => { cancelled = true; };
   }, []);
 
   return (
@@ -89,25 +117,7 @@ const GithubStats = () => {
               </h3>
               <div className="space-y-4">
                 {stats.topLanguages.map(({ lang, pct }) => (
-                  <div key={lang}>
-                    <div className="flex justify-between text-sm mb-1.5">
-                      <span className="text-gray-400 flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full" style={{ background: LANG_COLORS[lang] || LANG_COLORS.default }} />
-                        {lang}
-                      </span>
-                      <span className="text-gray-600 font-fira">{pct}%</span>
-                    </div>
-                    <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        whileInView={{ width: `${pct}%` }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                        className="h-full rounded-full"
-                        style={{ background: LANG_COLORS[lang] || LANG_COLORS.default }}
-                      />
-                    </div>
-                  </div>
+                  <LanguageBar key={lang} lang={lang} pct={pct} />
                 ))}
               </div>
 
@@ -129,6 +139,7 @@ const GithubStats = () => {
       </div>
     </section>
   );
-};
+});
+GithubStats.displayName = 'GithubStats';
 
 export default GithubStats;

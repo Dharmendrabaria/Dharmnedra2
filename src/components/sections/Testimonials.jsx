@@ -1,40 +1,42 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaStar, FaChevronLeft, FaChevronRight, FaQuoteLeft } from 'react-icons/fa';
 import { TESTIMONIALS } from '../../utils/constants';
 import { staggerContainer, fadeInUp } from '../../utils/animations';
 
-const StarRating = ({ rating }) => (
+const StarRating = memo(({ rating }) => (
   <div className="flex gap-1">
     {Array.from({ length: 5 }).map((_, i) => (
       <FaStar key={i} size={14} className={i < rating ? 'text-yellow-400' : 'text-gray-700'} />
     ))}
   </div>
-);
+));
+StarRating.displayName = 'StarRating';
 
-const Testimonials = () => {
+const Testimonials = memo(() => {
   const [idx, setIdx] = useState(0);
   const timerRef = useRef(null);
 
-  const next = () => setIdx((i) => (i + 1) % TESTIMONIALS.length);
-  const prev = () => setIdx((i) => (i - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
+  const next = useCallback(() => setIdx((i) => (i + 1) % TESTIMONIALS.length), []);
+  const prev = useCallback(() => setIdx((i) => (i - 1 + TESTIMONIALS.length) % TESTIMONIALS.length), []);
+
+  const resetTimer = useCallback(() => {
+    clearInterval(timerRef.current);
+    timerRef.current = setInterval(next, 5000);
+  }, [next]);
 
   useEffect(() => {
     timerRef.current = setInterval(next, 5000);
     return () => clearInterval(timerRef.current);
-  }, []);
+  }, [next]);
 
-  const resetTimer = () => {
-    clearInterval(timerRef.current);
-    timerRef.current = setInterval(next, 5000);
-  };
-
-  const handleNext = () => { next(); resetTimer(); };
-  const handlePrev = () => { prev(); resetTimer(); };
+  const handleNext = useCallback(() => { next(); resetTimer(); }, [next, resetTimer]);
+  const handlePrev = useCallback(() => { prev(); resetTimer(); }, [prev, resetTimer]);
+  const handleDot = useCallback((i) => { setIdx(i); resetTimer(); }, [resetTimer]);
 
   return (
     <section id="testimonials" className="relative py-24 md:py-36 bg-[#0A0A0A] overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-radial from-secondary/5 to-transparent pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(124,58,237,0.05) 0%, transparent 70%)' }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(124,58,237,0.05) 0%, transparent 70%)' }} />
 
       <div className="max-w-5xl mx-auto px-6 lg:px-12">
         <motion.div
@@ -73,6 +75,8 @@ const Testimonials = () => {
                   <img
                     src={TESTIMONIALS[idx].avatar}
                     alt={TESTIMONIALS[idx].name}
+                    loading="lazy"
+                    decoding="async"
                     className="w-14 h-14 rounded-full object-cover border-2 border-primary/30"
                   />
                   <div className="absolute inset-0 rounded-full shadow-glow-blue opacity-50" />
@@ -96,7 +100,7 @@ const Testimonials = () => {
               {TESTIMONIALS.map((_, i) => (
                 <button
                   key={i}
-                  onClick={() => { setIdx(i); resetTimer(); }}
+                  onClick={() => handleDot(i)}
                   className={`rounded-full transition-all duration-300 ${i === idx ? 'w-8 h-2 bg-primary' : 'w-2 h-2 bg-white/20 hover:bg-white/40'}`}
                 />
               ))}
@@ -110,6 +114,7 @@ const Testimonials = () => {
       </div>
     </section>
   );
-};
+});
+Testimonials.displayName = 'Testimonials';
 
 export default Testimonials;

@@ -14,7 +14,8 @@
   }
 
   html {
-    scroll-behavior: smooth;
+    /* scroll-behavior: smooth removed — Lenis handles smooth scrolling.
+       Having both causes competing scroll interpolation = jank */
     -webkit-tap-highlight-color: transparent;
     /* Hide cursor via HTML — inherits to all children, zero per-element cost */
     cursor: none;
@@ -124,7 +125,10 @@
   }
 
   /* Section padding */
-  .section-padding { @apply py-24 md:py-32; }
+  .section-padding {
+    @apply py-24 md:py-32;
+    contain: layout style paint;
+  }
   .container-padding { @apply px-6 md:px-12 lg:px-16; }
 
   /* GPU layer hints — only on elements that actually animate continuously */
