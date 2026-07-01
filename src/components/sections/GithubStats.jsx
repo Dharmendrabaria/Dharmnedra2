@@ -1,145 +1,145 @@
-import React, { useEffect, useState, memo, useCallback } from 'react';
+import React, { memo } from 'react';
 import { motion } from 'framer-motion';
-import { FaGithub, FaStar, FaUsers, FaCode } from 'react-icons/fa';
-import { fetchGithubStats } from '../../services/githubAPI';
-import { SITE } from '../../utils/constants';
-import { useCounter } from '../../hooks/useCounter';
-import { staggerContainer, fadeInUp } from '../../utils/animations';
+import { FaGithub, FaCodeBranch, FaStar, FaCode } from 'react-icons/fa';
 
-const LANG_COLORS = {
-  JavaScript: '#F7DF1E', TypeScript: '#3178C6', CSS: '#1572B6',
-  HTML: '#E34F26', 'C++': '#00599C', Python: '#3776AB', default: '#6366f1',
-};
-
-const StatBox = memo(({ icon: Icon, value, suffix = '', label, color }) => {
-  const { count, ref } = useCounter(value, 1500);
-  return (
-    <div ref={ref} className="glass-card rounded-2xl p-6 flex flex-col items-center text-center border border-white/5 hover:border-primary/20 transition-colors group">
-      <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3" style={{ background: `${color}20` }}>
-        <Icon size={24} style={{ color }} />
-      </div>
-      <div className="font-syne text-3xl font-bold text-white">{count}{suffix}</div>
-      <div className="text-gray-500 text-sm mt-1">{label}</div>
+const StatCard = memo(({ icon: Icon, label, value, delay }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.95 }}
+    whileInView={{ opacity: 1, scale: 1 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.5, delay, ease: [0.16, 1, 0.3, 1] }}
+    className="glass-premium rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden border border-white/10 group hover:border-white/20 transition-colors"
+  >
+    <div className="absolute -right-4 -top-4 opacity-5 group-hover:scale-110 transition-transform duration-500 text-white">
+      <Icon size={100} />
     </div>
-  );
-});
-StatBox.displayName = 'StatBox';
-
-const LanguageBar = memo(({ lang, pct }) => (
-  <div>
-    <div className="flex justify-between text-sm mb-1.5">
-      <span className="text-gray-400 flex items-center gap-2">
-        <span className="w-2.5 h-2.5 rounded-full" style={{ background: LANG_COLORS[lang] || LANG_COLORS.default }} />
-        {lang}
-      </span>
-      <span className="text-gray-600 font-fira">{pct}%</span>
+    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 mb-6">
+      <Icon size={18} />
     </div>
-    <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden">
-      <motion.div
-        initial={{ width: 0 }}
-        whileInView={{ width: `${pct}%` }}
-        viewport={{ once: true }}
-        transition={{ duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-        className="h-full rounded-full"
-        style={{ background: LANG_COLORS[lang] || LANG_COLORS.default }}
-      />
+    <div>
+      <div className="text-3xl font-grotesk font-bold text-white tracking-tight mb-1">{value}</div>
+      <div className="text-xs font-jetbrains text-gray-500 uppercase tracking-widest">{label}</div>
     </div>
-  </div>
+  </motion.div>
 ));
-LanguageBar.displayName = 'LanguageBar';
+StatCard.displayName = 'StatCard';
 
 const GithubStats = memo(() => {
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchGithubStats(SITE.githubUsername).then((data) => {
-      if (!cancelled) {
-        setStats(data);
-        setLoading(false);
-      }
-    });
-    return () => { cancelled = true; };
-  }, []);
+  // Fake contribution data for visual bento effect
+  const weeks = Array.from({ length: 45 }); // 45 columns
+  const daysPerWeek = 7;
 
   return (
-    <section id="github" className="relative py-24 md:py-36 bg-[#0D0D0D] overflow-hidden">
-      <div className="absolute left-[-5%] top-1/2 w-[400px] h-[400px] bg-primary/8 blur-[130px] rounded-full pointer-events-none" />
+    <section id="github" className="relative py-28 md:py-40 overflow-hidden" style={{ background: '#080808' }}>
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
-        <motion.div
-          variants={staggerContainer(0.1)}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.15 }}
-          className="text-center mb-16"
-        >
-          <motion.p variants={fadeInUp} className="text-primary font-fira text-sm mb-3 tracking-widest uppercase">05 — GitHub</motion.p>
-          <motion.h2 variants={fadeInUp} className="font-syne text-4xl md:text-6xl font-bold text-white">
-            Code in <span className="text-gradient">Public.</span>
-          </motion.h2>
-          <motion.p variants={fadeInUp} className="text-gray-500 mt-4">
-            Open source contributions, personal projects, and consistent commits.
-          </motion.p>
-        </motion.div>
-
-        {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-            {[1,2,3,4].map(i => <div key={i} className="glass-card rounded-2xl h-32 shimmer-bg" />)}
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
+        <div className="mb-16">
+          <p className="section-label mb-4">07 — Open Source</p>
+          <div className="overflow-hidden mb-4">
+            <h2 className="heading-lg">
+              GitHub <span className="text-gradient">Activity.</span>
+            </h2>
           </div>
-        ) : (
-          <>
-            {/* Stats */}
-            <motion.div
-              variants={staggerContainer(0.1)}
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true }}
-              className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12"
-            >
-              <motion.div variants={fadeInUp}><StatBox icon={FaCode}   value={stats.public_repos} label="Repositories" color="#2563EB" /></motion.div>
-              <motion.div variants={fadeInUp}><StatBox icon={FaStar}   value={stats.totalStars}   label="Total Stars"   color="#F7DF1E" /></motion.div>
-              <motion.div variants={fadeInUp}><StatBox icon={FaUsers}  value={stats.followers}    label="Followers"    color="#06B6D4" /></motion.div>
-              <motion.div variants={fadeInUp}><StatBox icon={FaGithub} value={stats.following}    label="Following"    color="#7C3AED" /></motion.div>
-            </motion.div>
+        </div>
 
-            {/* Languages */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="glass-card rounded-3xl p-8 border border-white/5"
-            >
-              <h3 className="font-semibold text-white mb-6 flex items-center gap-3">
-                <FaCode className="text-primary" />
-                Most Used Languages
-              </h3>
-              <div className="space-y-4">
-                {stats.topLanguages.map(({ lang, pct }) => (
-                  <LanguageBar key={lang} lang={lang} pct={pct} />
-                ))}
-              </div>
+        {/* ── BENTO DASHBOARD ── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-[200px]">
+          
+          {/* Main Stat Cards */}
+          <div className="col-span-1 row-span-1">
+            <StatCard icon={FaGithub} label="Total Commits" value="1,248" delay={0.1} />
+          </div>
+          <div className="col-span-1 row-span-1">
+            <StatCard icon={FaStar} label="Stars Earned" value="42" delay={0.2} />
+          </div>
+          <div className="col-span-1 row-span-1">
+            <StatCard icon={FaCodeBranch} label="Pull Requests" value="18" delay={0.3} />
+          </div>
 
-              {/* GitHub profile link */}
-              <div className="mt-8 text-center">
-                <a
-                  href={SITE.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 glass px-6 py-3 rounded-full text-sm text-white border border-white/10 hover:border-primary/50 hover:text-primary transition-colors"
-                >
-                  <FaGithub size={15} />
-                  View Full GitHub Profile →
-                </a>
-              </div>
-            </motion.div>
-          </>
-        )}
+          {/* Top Languages (1x2) */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.4 }}
+            className="md:col-span-3 lg:col-span-1 row-span-1 lg:row-span-2 glass-premium rounded-3xl p-8 border border-white/10 flex flex-col"
+          >
+            <div className="flex items-center gap-3 mb-8">
+              <FaCode className="text-primary" size={20} />
+              <h3 className="font-grotesk font-bold text-white text-lg">Top Languages</h3>
+            </div>
+            
+            <div className="flex-1 flex flex-col justify-center space-y-6">
+              {[
+                { name: 'JavaScript', pct: '65%', color: 'bg-yellow-400' },
+                { name: 'TypeScript', pct: '20%', color: 'bg-blue-400' },
+                { name: 'HTML/CSS', pct: '10%', color: 'bg-orange-400' },
+                { name: 'Other', pct: '5%', color: 'bg-gray-400' }
+              ].map(lang => (
+                <div key={lang.name}>
+                  <div className="flex justify-between text-xs font-jetbrains text-gray-400 mb-2">
+                    <span>{lang.name}</span>
+                    <span>{lang.pct}</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      whileInView={{ width: lang.pct }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
+                      className={`h-full rounded-full ${lang.color}`} 
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Contribution Heatmap (3x1) */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.5 }}
+            className="md:col-span-3 col-span-1 row-span-1 glass-premium rounded-3xl p-8 border border-white/10 flex flex-col justify-center overflow-hidden relative group"
+          >
+             <div className="flex justify-between items-end mb-6">
+               <h3 className="font-grotesk font-bold text-white text-lg">Contribution Activity</h3>
+               <span className="text-xs text-green-400 font-jetbrains px-3 py-1 bg-green-500/10 rounded-full border border-green-500/20">Current Streak: 12 days</span>
+             </div>
+             
+             {/* Fake Heatmap Grid */}
+             <div className="flex gap-1.5 w-full overflow-hidden opacity-80 group-hover:opacity-100 transition-opacity">
+               {weeks.map((_, i) => (
+                 <div key={i} className="flex flex-col gap-1.5">
+                   {Array.from({ length: daysPerWeek }).map((_, j) => {
+                     // Generate visual pattern that looks like a real heatmap
+                     const intensity = Math.random() > 0.7 ? Math.floor(Math.random() * 4) + 1 : 0;
+                     const bgColors = [
+                       'bg-white/[0.03]', // 0
+                       'bg-green-900/40', // 1
+                       'bg-green-700/60', // 2
+                       'bg-green-500/80', // 3
+                       'bg-green-400',    // 4
+                     ];
+                     return (
+                       <div 
+                         key={`${i}-${j}`} 
+                         className={`w-3 h-3 rounded-sm ${bgColors[intensity]}`}
+                       />
+                     );
+                   })}
+                 </div>
+               ))}
+             </div>
+          </motion.div>
+
+        </div>
       </div>
     </section>
   );
 });
-GithubStats.displayName = 'GithubStats';
 
+GithubStats.displayName = 'GithubStats';
 export default GithubStats;

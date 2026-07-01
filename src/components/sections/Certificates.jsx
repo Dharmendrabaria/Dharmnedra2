@@ -1,137 +1,141 @@
-import React, { useState, useCallback, memo } from 'react';
+import React, { memo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaDownload, FaTimes, FaExpand } from 'react-icons/fa';
+import { FaExternalLinkAlt, FaTimes } from 'react-icons/fa';
 import { CERTIFICATES } from '../../utils/constants';
-import { staggerContainer, fadeInUp } from '../../utils/animations';
 
-const CertModal = memo(({ cert, onClose }) => (
+const CertCard = memo(({ cert, index, onClick }) => (
   <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-    onClick={onClose}
+    initial={{ opacity: 0, y: 40 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, amount: 0.2 }}
+    transition={{ duration: 0.7, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
+    className="group cursor-pointer"
+    onClick={() => onClick(cert)}
   >
-    <div className="absolute inset-0 bg-black/85 backdrop-blur-xl" />
-    <motion.div
-      initial={{ scale: 0.85, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      exit={{ scale: 0.85, opacity: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      onClick={(e) => e.stopPropagation()}
-      className="relative z-10 w-full max-w-2xl glass-card rounded-3xl overflow-hidden border border-white/10"
-    >
-      <button onClick={onClose} className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full glass border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
-        <FaTimes size={14} />
-      </button>
-
-      <img src={cert.image} alt={cert.title} loading="eager" className="w-full h-64 object-cover" />
-      <div className="p-8">
-        <h3 className="font-syne text-2xl font-bold text-white mb-2">{cert.title}</h3>
-        <p className="text-gray-500 mb-1">{cert.issuer}</p>
-        <p className="text-primary font-fira text-sm mb-6">{cert.date}</p>
-        <a
-          href={cert.image}
-          download
-          className="inline-flex items-center gap-2 bg-primary px-6 py-3 rounded-full text-white font-semibold text-sm hover:bg-primary-light transition-colors shadow-glow-blue"
-        >
-          <FaDownload size={13} /> Download Certificate
-        </a>
-      </div>
-    </motion.div>
-  </motion.div>
-));
-CertModal.displayName = 'CertModal';
-
-/**
- * CertCard — memoized, CSS hover instead of whileHover={{ y: -6 }}
- */
-const CertCard = memo(({ cert, onSelect }) => {
-  const handleClick = useCallback(() => onSelect(cert), [cert, onSelect]);
-
-  return (
-    <motion.div
-      variants={fadeInUp}
-      onClick={handleClick}
-      className="cert-card group relative rounded-3xl overflow-hidden cursor-pointer glass-card border border-white/5 hover:border-primary/30 transition-all duration-400"
-    >
-      <div className="relative h-48 overflow-hidden bg-black/30">
+    <div className="glass-premium rounded-3xl p-3 border border-white/6 h-full flex flex-col card-lift">
+      <div className="relative rounded-2xl overflow-hidden aspect-[4/3] bg-black/40 mb-4">
         <img
           src={cert.image}
           alt={cert.title}
           loading="lazy"
           decoding="async"
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-70"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        
+        <div className="absolute top-3 right-3 glass rounded-full px-2.5 py-1 text-[10px] font-jetbrains text-gray-300 border border-white/10 backdrop-blur-md">
+          {cert.date}
+        </div>
+        
+        <div className="absolute bottom-4 left-4 right-4">
+          <span className="text-[10px] font-jetbrains text-primary/80 uppercase tracking-widest">{cert.issuer}</span>
+          <h3 className="font-grotesk text-lg font-bold text-white mt-1 leading-tight group-hover:text-primary transition-colors">
+            {cert.title}
+          </h3>
+        </div>
 
-        {/* Hover overlay */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-primary/10">
-          <div className="glass rounded-full p-3 border border-white/20">
-            <FaExpand className="text-white" size={18} />
-          </div>
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-sm">
+          <span className="btn-glass text-xs py-2 px-4 scale-95 group-hover:scale-100 transition-transform">
+            View Certificate
+          </span>
         </div>
       </div>
-
-      <div className="p-6">
-        <h3 className="font-semibold text-white mb-1 group-hover:text-gradient transition-all duration-500">{cert.title}</h3>
-        <p className="text-gray-500 text-sm">{cert.issuer}</p>
-        <p className="text-primary font-fira text-xs mt-2">{cert.date}</p>
-      </div>
-    </motion.div>
-  );
-});
+    </div>
+  </motion.div>
+));
 CertCard.displayName = 'CertCard';
 
 const Certificates = memo(() => {
   const [selected, setSelected] = useState(null);
-  const handleSelect = useCallback((cert) => setSelected(cert), []);
-  const handleClose = useCallback(() => setSelected(null), []);
 
   return (
-    <section id="certificates" className="relative py-24 md:py-36 bg-[#0D0D0D] overflow-hidden">
-      <div className="absolute right-0 top-1/3 w-[400px] h-[400px] bg-accent/8 blur-[130px] rounded-full pointer-events-none" />
+    <section id="certificates" className="relative py-28 md:py-40 overflow-hidden" style={{ background: '#080808' }}>
+      {/* Background Mesh */}
+      <div className="absolute inset-0 pointer-events-none opacity-40 mesh-bg" />
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
-        <motion.div
-          variants={staggerContainer(0.1)}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.1 }}
-          className="text-center mb-16"
-        >
-          <motion.p variants={fadeInUp} className="text-primary font-fira text-sm mb-3 tracking-widest uppercase">09 — Certificates</motion.p>
-          <motion.h2 variants={fadeInUp} className="font-syne text-4xl md:text-6xl font-bold text-white">
-            Credentials & <span className="text-gradient">Achievements.</span>
-          </motion.h2>
-        </motion.div>
+      {/* Divider */}
+      <motion.div
+        initial={{ scaleX: 0 }}
+        whileInView={{ scaleX: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }}
+        className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent origin-left"
+      />
 
-        <motion.div
-          variants={staggerContainer(0.1)}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.1 }}
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {CERTIFICATES.map((cert) => (
-            <CertCard key={cert.id} cert={cert} onSelect={handleSelect} />
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
+        <div className="mb-16">
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="section-label mb-4"
+          >
+            09 — Continuous Learning
+          </motion.p>
+          <div className="overflow-hidden mb-4">
+            <motion.h2
+              initial={{ y: '100%' }}
+              whileInView={{ y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
+              className="heading-lg"
+            >
+              Verified <span className="text-gradient">Certifications.</span>
+            </motion.h2>
+          </div>
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="text-gray-500 max-w-lg text-[15px]"
+          >
+            Formal recognition of skills acquired through dedicated coursework and professional training.
+          </motion.p>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {CERTIFICATES.map((cert, i) => (
+            <CertCard key={cert.id} cert={cert} index={i} onClick={setSelected} />
           ))}
-        </motion.div>
+        </div>
       </div>
 
       <AnimatePresence>
-        {selected && <CertModal cert={selected} onClose={handleClose} />}
+        {selected && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelected(null)}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-4xl glass-premium p-2 rounded-3xl border border-white/10"
+            >
+              <button
+                onClick={() => setSelected(null)}
+                className="absolute -top-12 right-0 w-10 h-10 rounded-full glass flex items-center justify-center text-white hover:bg-white/10 transition-colors"
+              >
+                <FaTimes size={16} />
+              </button>
+              
+              <img src={selected.image} alt={selected.title} className="w-full rounded-2xl border border-white/5" />
+              
+              <div className="absolute bottom-6 right-6">
+                <a href={selected.link} target="_blank" rel="noopener noreferrer" className="btn-primary text-sm py-2 px-5 shadow-glow-blue">
+                  <FaExternalLinkAlt size={12} /> Verify Credential
+                </a>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
-
-      {/* CSS hover lift — replaces whileHover={{ y: -6 }} */}
-      <style>{`
-        .cert-card {
-          transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
-        }
-        .cert-card:hover {
-          transform: translateY(-6px) translateZ(0);
-        }
-      `}</style>
     </section>
   );
 });

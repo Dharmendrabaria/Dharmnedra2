@@ -1,4 +1,4 @@
-/* Fix 1: cursor: none only on html — cascades down, no per-element cost */
+/* ─── Design System ─────────────────────────────────────────────────────────── */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,23 +7,29 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --color-primary: #2563EB;
+    --color-primary:   #2563EB;
     --color-secondary: #7C3AED;
-    --color-accent: #06B6D4;
-    --color-bg: #0A0A0A;
+    --color-accent:    #06B6D4;
+    --color-bg:        #080808;
+    --ease-premium:    cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-cinematic:  cubic-bezier(0.76, 0, 0.24, 1);
   }
 
   html {
-    /* scroll-behavior: smooth removed — Lenis handles smooth scrolling.
-       Having both causes competing scroll interpolation = jank */
+    /* scroll-behavior: smooth — removed. Lenis handles all scroll interpolation */
     -webkit-tap-highlight-color: transparent;
-    /* Hide cursor via HTML — inherits to all children, zero per-element cost */
     cursor: none;
+    font-feature-settings: 'cv11', 'ss01';
+    font-variant-numeric: tabular-nums;
   }
 
   body {
-    @apply bg-[#0A0A0A] text-gray-100 font-inter antialiased;
+    background: #080808;
+    color: #f1f5f9;
+    font-family: 'Inter', sans-serif;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   /* Touch devices: restore cursor */
@@ -31,37 +37,64 @@
     html { cursor: auto; }
   }
 
-  ::selection { @apply bg-primary/30 text-white; }
+  ::selection { background: rgba(37,99,235,0.3); color: #ffffff; }
+
+  /* Headings default to Space Grotesk */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  code, pre, kbd { font-family: 'JetBrains Mono', monospace; }
 }
 
-/* ─── Scrollbar ─── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #0A0A0A; }
-::-webkit-scrollbar-thumb { @apply rounded-full bg-white/10; }
-::-webkit-scrollbar-thumb:hover { @apply bg-primary/50; }
+/* ─── Scrollbar ─────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #080808; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(37,99,235,0.5); }
 
-/* ─── Utilities ─── */
+/* ─── Utilities ─────────────────────────────────────────────────────────────── */
 @layer utilities {
+
+  /* ── Glass surfaces ── */
   .glass {
     background: rgba(255,255,255,0.03);
-    backdrop-filter: blur(16px) saturate(160%);
-    -webkit-backdrop-filter: blur(16px) saturate(160%);
-    border: 1px solid rgba(255,255,255,0.08);
-    /* Own compositing layer — prevents blur from triggering full repaint */
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.07);
     transform: translateZ(0);
   }
 
   .glass-card {
-    background: rgba(13,13,13,0.7);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(13,13,13,0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255,255,255,0.06);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
     transform: translateZ(0);
   }
 
+  .glass-premium {
+    background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 0 0 0.5px rgba(255,255,255,0.03), 0 32px 80px rgba(0,0,0,0.5);
+    transform: translateZ(0);
+  }
+
+  /* ── Typography ── */
   .text-gradient {
     background: linear-gradient(135deg, #2563EB 0%, #7C3AED 50%, #06B6D4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-warm {
+    background: linear-gradient(135deg, #f59e0b 0%, #ef4444 50%, #8b5cf6 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -76,6 +109,7 @@
     animation: gradient-shift 8s ease infinite;
   }
 
+  /* ── Border gradient ── */
   .border-gradient {
     position: relative;
   }
@@ -93,56 +127,203 @@
     pointer-events: none;
   }
 
-  .noise-texture {
-    position: relative;
+  /* ── Aurora background ── */
+  .aurora-bg {
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 40%, rgba(37,99,235,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 60%, rgba(124,58,237,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 100% 40% at 50% 100%, rgba(6,182,212,0.06) 0%, transparent 60%),
+      #080808;
+    animation: aurora 20s ease infinite alternate;
+    background-size: 200% 200%, 200% 200%, 100% 100%, 100% 100%;
   }
+
+  /* ── Noise texture overlay ── */
   .noise-texture::after {
     content: '';
     position: absolute;
     inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
     border-radius: inherit;
     pointer-events: none;
-    opacity: 0.4;
+    opacity: 0.3;
+    mix-blend-mode: overlay;
   }
 
-  .glow-blue   { box-shadow: 0 0 20px rgba(37,99,235,0.4), 0 0 60px rgba(37,99,235,0.2); }
-  .glow-purple { box-shadow: 0 0 20px rgba(124,58,237,0.4), 0 0 60px rgba(124,58,237,0.2); }
-  .glow-cyan   { box-shadow: 0 0 20px rgba(6,182,212,0.4); }
+  /* ── Glows ── */
+  .glow-blue   { box-shadow: 0 0 24px rgba(37,99,235,0.5), 0 0 80px rgba(37,99,235,0.15); }
+  .glow-purple { box-shadow: 0 0 24px rgba(124,58,237,0.5), 0 0 80px rgba(124,58,237,0.15); }
+  .glow-cyan   { box-shadow: 0 0 24px rgba(6,182,212,0.5), 0 0 60px rgba(6,182,212,0.15); }
 
+  /* ── Shapes ── */
   .clip-hex {
     clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
   }
 
+  /* ── Scrollbar hiding ── */
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-  /* Shimmer loading skeleton */
+  /* ── Shimmer skeleton ── */
   .shimmer-bg {
-    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.03) 75%);
     background-size: 200% 100%;
     animation: shimmer 2s infinite;
   }
 
-  /* Section padding */
+  /* ── Section padding ── */
   .section-padding {
-    @apply py-24 md:py-32;
+    @apply py-24 md:py-36;
     contain: layout style paint;
   }
   .container-padding { @apply px-6 md:px-12 lg:px-16; }
 
-  /* GPU layer hints — only on elements that actually animate continuously */
+  /* ── Continuous animation GPU hints ── */
   .animate-blob,
   .animate-float,
-  .animate-spin-slow {
+  .animate-float-slow,
+  .animate-float-delayed,
+  .animate-spin-slow,
+  .animate-spin-reverse,
+  .animate-glow-pulse,
+  .animate-aurora {
     will-change: transform;
     transform: translateZ(0);
   }
 
-  /* Marquee strips — own GPU layer */
   .animate-marquee,
   .animate-marquee-reverse {
     will-change: transform;
     contain: layout style;
   }
+
+  /* ── Tag badge ── */
+  .tag {
+    @apply text-xs font-jetbrains px-2.5 py-0.5 rounded-full border;
+    background: rgba(255,255,255,0.04);
+    border-color: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.5);
+  }
+
+  /* ── Section number label ── */
+  .section-label {
+    @apply text-xs font-jetbrains tracking-[0.3em] uppercase text-primary;
+  }
+
+  /* ── Heading styles ── */
+  .heading-xl {
+    @apply font-grotesk text-5xl md:text-7xl font-bold leading-[1.02] tracking-tight text-white;
+  }
+  .heading-lg {
+    @apply font-grotesk text-4xl md:text-6xl font-bold leading-tight tracking-tight text-white;
+  }
+
+  /* ── Card lift on hover (CSS only, GPU) ── */
+  .card-lift {
+    transition: transform 0.45s var(--ease-premium), box-shadow 0.45s var(--ease-premium);
+    transform: translateZ(0);
+  }
+  .card-lift:hover {
+    transform: translateY(-10px) translateZ(0);
+    box-shadow: 0 30px 70px rgba(0,0,0,0.7), 0 0 0 1px rgba(37,99,235,0.2);
+  }
+
+  /* ── Inline link underline effect ── */
+  .link-hover {
+    position: relative;
+  }
+  .link-hover::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: linear-gradient(90deg, #2563EB, #7C3AED);
+    transition: width 0.4s var(--ease-premium);
+  }
+  .link-hover:hover::after { width: 100%; }
+
+  /* ── Gradient mesh background ── */
+  .mesh-bg {
+    background:
+      radial-gradient(at 40% 20%, rgba(37,99,235,0.08) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, rgba(124,58,237,0.06) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, rgba(6,182,212,0.05) 0px, transparent 50%),
+      radial-gradient(at 80% 50%, rgba(37,99,235,0.04) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(124,58,237,0.07) 0px, transparent 50%);
+  }
+
+  /* ── Button base ── */
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-7 py-3.5 bg-primary rounded-full text-white font-semibold text-sm;
+    box-shadow: 0 0 20px rgba(37,99,235,0.35), 0 0 60px rgba(37,99,235,0.1);
+    transition: background-color 0.3s ease, transform 0.3s var(--ease-premium), box-shadow 0.3s ease;
+  }
+  .btn-primary:hover {
+    background-color: #3b82f6;
+    transform: translateY(-2px) scale(1.02) translateZ(0);
+    box-shadow: 0 0 30px rgba(37,99,235,0.5), 0 0 80px rgba(37,99,235,0.2);
+  }
+
+  .btn-glass {
+    @apply inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-white font-semibold text-sm;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(16px);
+    transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s var(--ease-premium);
+  }
+  .btn-glass:hover {
+    background: rgba(255,255,255,0.09);
+    border-color: rgba(255,255,255,0.25);
+    transform: translateY(-2px) translateZ(0);
+  }
 }
+
+/* ─── Custom fonts: add Space Grotesk and JetBrains Mono utilities ──────────── */
+.font-grotesk  { font-family: 'Space Grotesk', sans-serif; }
+.font-jetbrains { font-family: 'JetBrains Mono', monospace; }
+
+/* ─── DEVELOPER MODE (Easter Egg) ───────────────────────────────────────────── */
+body.dev-mode {
+  background: #000000 !important;
+  color: #00ff00 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+body.dev-mode * {
+  font-family: 'JetBrains Mono', monospace !important;
+  border-color: #003300 !important;
+}
+
+body.dev-mode h1, body.dev-mode h2, body.dev-mode h3, body.dev-mode h4, body.dev-mode p, body.dev-mode span {
+  color: #00ff00 !important;
+  text-shadow: 0 0 5px rgba(0,255,0,0.5) !important;
+  background: transparent !important;
+  -webkit-text-fill-color: #00ff00 !important;
+}
+
+body.dev-mode .glass, body.dev-mode .glass-premium, body.dev-mode .glass-card {
+  background: #000000 !important;
+  backdrop-filter: none !important;
+  border: 1px solid #00ff00 !important;
+  box-shadow: none !important;
+}
+
+body.dev-mode .btn-primary, body.dev-mode .btn-glass {
+  background: #00ff00 !important;
+  color: #000000 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+body.dev-mode .btn-primary:hover, body.dev-mode .btn-glass:hover {
+  background: #00cc00 !important;
+  transform: none !important;
+}
+
+body.dev-mode .aurora-bg, body.dev-mode .mesh-bg {
+  background: none !important;
+  animation: none !important;
+}
+

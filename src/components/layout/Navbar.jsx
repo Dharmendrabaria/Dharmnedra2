@@ -3,25 +3,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { NAV_LINKS, SITE } from '../../utils/constants';
 import { FiTerminal } from 'react-icons/fi';
 
-/**
- * Navbar — performance fixes:
- * 1. Scroll handler runs through RAF — no layout thrash
- * 2. offsetTop values cached after mount — no DOM read on every scroll
- * 3. setScrolled only triggers state if value actually changed
- * 4. setActive only triggers state when section actually changes
- */
 const Navbar = memo(({ onCommandOpen }) => {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [active, setActive]     = useState('Home');
 
-  // Cache section offsets — read once, not on every scroll event
   const sectionsRef   = useRef([]);
   const rafRef        = useRef(null);
   const scrolledRef   = useRef(false);
   const activeRef     = useRef('Home');
 
-  // Measure section positions once after mount (and on resize)
   const measureSections = useCallback(() => {
     sectionsRef.current = NAV_LINKS.map(({ href, label }) => {
       const el = document.querySelector(href);
@@ -34,20 +25,17 @@ const Navbar = memo(({ onCommandOpen }) => {
     window.addEventListener('resize', measureSections, { passive: true });
 
     const onScroll = () => {
-      // Throttle via RAF — runs at most once per frame
       if (rafRef.current) return;
       rafRef.current = requestAnimationFrame(() => {
         rafRef.current = null;
         const y = window.scrollY;
 
-        // scrolled state — only trigger setState if it changed
         const isScrolled = y > 60;
         if (isScrolled !== scrolledRef.current) {
           scrolledRef.current = isScrolled;
           setScrolled(isScrolled);
         }
 
-        // Scroll spy — use cached positions, no DOM reads
         const scrollY = y + 120;
         for (const s of sectionsRef.current) {
           if (s.top <= scrollY && s.top + s.height > scrollY) {
@@ -82,37 +70,41 @@ const Navbar = memo(({ onCommandOpen }) => {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          scrolled ? 'glass border-b border-white/5 py-3' : 'bg-transparent py-5'
+          scrolled ? 'glass-premium border-b border-white/5 py-3' : 'bg-transparent py-5'
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-12 flex items-center justify-between">
           <a
             href="#home"
             onClick={(e) => { e.preventDefault(); handleNav('#home'); }}
-            className="relative group"
+            className="relative group flex items-center"
           >
-            <span className="font-syne text-2xl font-bold text-white">
-              DB<span className="text-gradient">.</span>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary via-secondary to-accent p-px mr-3">
+              <div className="w-full h-full bg-[#080808] rounded-[7px] flex items-center justify-center font-grotesk font-bold text-white text-sm">
+                DB
+              </div>
+            </div>
+            <span className="font-grotesk text-xl font-bold text-white tracking-tight hidden sm:block">
+              Dharmendra Baria
             </span>
-            <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-gradient-to-r from-primary to-accent group-hover:w-full transition-all duration-500" />
           </a>
 
-          <nav className="hidden lg:flex items-center gap-1 relative">
+          <nav className="hidden lg:flex items-center gap-1.5 relative glass rounded-full px-2 py-1.5 border border-white/6">
             {NAV_LINKS.map(({ label, href }) => (
               <a
                 key={label}
                 href={href}
                 onClick={(e) => { e.preventDefault(); handleNav(href); }}
-                className="relative px-4 py-2 text-sm font-medium transition-colors duration-300 group"
+                className="relative px-4 py-1.5 text-sm font-medium transition-colors duration-300 group"
               >
                 {active === label && (
                   <motion.span
                     layoutId="nav-pill"
-                    className="absolute inset-0 rounded-full bg-white/8 border border-white/10"
+                    className="absolute inset-0 rounded-full bg-white/10"
                     transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
                   />
                 )}
-                <span className={`relative z-10 transition-colors ${active === label ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>
+                <span className={`relative z-10 transition-colors font-grotesk ${active === label ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>
                   {label}
                 </span>
               </a>
@@ -122,20 +114,24 @@ const Navbar = memo(({ onCommandOpen }) => {
           <div className="flex items-center gap-3">
             <button
               onClick={onCommandOpen}
-              className="hidden md:flex items-center gap-2 glass rounded-lg px-3 py-2 text-xs text-gray-500 hover:text-white transition-colors border border-white/5 hover:border-white/20"
+              className="hidden md:flex items-center gap-2 glass rounded-full px-4 py-2 text-xs text-gray-500 hover:text-white transition-colors border border-white/6 hover:border-white/20"
               title="Open Command Palette (Ctrl+K)"
             >
-              <FiTerminal size={13} />
-              <kbd className="font-fira">⌘K</kbd>
+              <FiTerminal size={14} />
+              <kbd className="font-jetbrains px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[10px]">⌘K</kbd>
             </button>
 
             <a
               href="#contact"
               onClick={(e) => { e.preventDefault(); handleNav('#contact'); }}
-              className="hidden md:flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold bg-primary hover:bg-primary-light transition-all duration-300 text-white shadow-glow-blue hover:scale-105"
+              className="hidden md:flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white transition-all duration-300 hover:scale-105"
+              style={{
+                background: 'linear-gradient(135deg, #2563EB, #7C3AED)',
+                boxShadow: '0 0 20px rgba(37,99,235,0.3)',
+              }}
             >
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              Hire Me
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+              Available
             </a>
 
             <button
@@ -143,9 +139,9 @@ const Navbar = memo(({ onCommandOpen }) => {
               onClick={() => setMenuOpen((v) => !v)}
               aria-label="Toggle menu"
             >
-              <motion.span animate={menuOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }} transition={{ duration: 0.3 }} className="block w-6 h-[1.5px] bg-white" />
-              <motion.span animate={menuOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }} transition={{ duration: 0.3 }} className="block w-6 h-[1.5px] bg-white" />
-              <motion.span animate={menuOpen ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }} transition={{ duration: 0.3 }} className="block w-6 h-[1.5px] bg-white" />
+              <motion.span animate={menuOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }} transition={{ duration: 0.3 }} className="block w-6 h-px bg-white" />
+              <motion.span animate={menuOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }} transition={{ duration: 0.3 }} className="block w-6 h-px bg-white" />
+              <motion.span animate={menuOpen ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }} transition={{ duration: 0.3 }} className="block w-6 h-px bg-white" />
             </button>
           </div>
         </div>
@@ -154,32 +150,32 @@ const Navbar = memo(({ onCommandOpen }) => {
       <AnimatePresence>
         {menuOpen && (
           <motion.div
-            initial={{ opacity: 0, clipPath: 'circle(0% at calc(100% - 48px) 40px)' }}
-            animate={{ opacity: 1, clipPath: 'circle(150% at calc(100% - 48px) 40px)' }}
-            exit={{ opacity: 0, clipPath: 'circle(0% at calc(100% - 48px) 40px)' }}
-            transition={{ duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
-            className="fixed inset-0 z-40 bg-[#0A0A0A]/98 backdrop-blur-2xl flex flex-col items-center justify-center"
+            initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+            animate={{ opacity: 1, backdropFilter: 'blur(20px)' }}
+            exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 z-40 bg-[#080808]/90 flex flex-col items-center justify-center"
           >
-            <nav className="flex flex-col items-center gap-6">
+            <nav className="flex flex-col items-center gap-8">
               {NAV_LINKS.map(({ label, href }, i) => (
                 <motion.a
                   key={label}
                   href={href}
-                  initial={{ opacity: 0, y: 30 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 + i * 0.07, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ delay: 0.1 + i * 0.05, duration: 0.4 }}
                   onClick={(e) => { e.preventDefault(); handleNav(href); }}
-                  className="font-syne text-4xl font-bold text-white hover:text-gradient transition-all duration-300"
+                  className="font-grotesk text-4xl font-bold text-white hover:text-gradient transition-all duration-300"
                 >
                   {label}
                 </motion.a>
               ))}
             </nav>
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="absolute bottom-12 text-sm text-gray-600 font-fira"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="absolute bottom-12 text-xs text-gray-500 font-jetbrains tracking-widest"
             >
               {SITE.email}
             </motion.div>

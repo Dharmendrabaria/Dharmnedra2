@@ -1,104 +1,143 @@
-import React, { memo } from 'react';
-import { motion } from 'framer-motion';
+import React, { memo, useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { EXPERIENCE } from '../../utils/constants';
-import { staggerContainer, fadeInUp } from '../../utils/animations';
 
 const TYPE_COLORS = { course: '#2563EB', education: '#7C3AED', freelance: '#06B6D4' };
+const TYPE_BG     = { course: 'rgba(37,99,235,0.1)', education: 'rgba(124,58,237,0.1)', freelance: 'rgba(6,182,212,0.1)' };
 const TYPE_LABELS = { course: 'Course', education: 'Education', freelance: 'Freelance' };
 
-/**
- * ExperienceCard — memoized, avoids re-render on sibling scroll animations
- */
-const ExperienceCard = memo(({ item, i }) => (
-  <motion.div
-    key={item.id}
-    initial={{ opacity: 0, y: 40 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, amount: 0.3 }}
-    transition={{ duration: 0.7, delay: i * 0.1 }}
-    className={`relative flex items-center gap-8 ${
-      i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'
-    } flex-col md:flex-row`}
-  >
-    {/* Card */}
-    <div className="md:w-[calc(50%-32px)] w-full">
-      <div className="glass-card rounded-3xl p-8 border border-white/5 hover:border-primary/20 transition-colors duration-400 group">
-        <div className="flex items-center justify-between mb-4">
-          <span
-            className="text-xs font-fira px-3 py-1 rounded-full border"
-            style={{
-              color: TYPE_COLORS[item.type],
-              borderColor: `${TYPE_COLORS[item.type]}40`,
-              background: `${TYPE_COLORS[item.type]}10`,
-            }}
-          >
-            {TYPE_LABELS[item.type]}
-          </span>
-          <span className="text-xs text-gray-600 font-fira">{item.duration}</span>
-        </div>
-
-        <h3 className="font-syne text-xl font-bold text-white mb-1 group-hover:text-gradient transition-all duration-500">
-          {item.title}
-        </h3>
-        <p className="text-gray-500 text-sm mb-4">{item.company}</p>
-        <p className="text-gray-400 text-sm leading-relaxed mb-6">{item.description}</p>
-
-        <div className="flex flex-wrap gap-2">
-          {item.skills.map((s) => (
-            <span key={s} className="text-xs glass border border-white/8 rounded-full px-2.5 py-0.5 text-gray-400 font-fira">
-              {s}
+const ExperienceCard = memo(({ item, index }) => {
+  const isEven = index % 2 === 0;
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: isEven ? -60 : 60 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.8, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
+      className={`flex items-center gap-8 ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'} flex-col`}
+    >
+      {/* Card */}
+      <div className="md:w-[calc(50%-40px)] w-full group">
+        <div
+          className="glass-premium rounded-3xl p-8 border transition-all duration-400"
+          style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+          onMouseEnter={e => {
+            e.currentTarget.style.borderColor = `${TYPE_COLORS[item.type]}40`;
+            e.currentTarget.style.boxShadow = `0 0 30px ${TYPE_COLORS[item.type]}15, 0 20px 50px rgba(0,0,0,0.5)`;
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+        >
+          <div className="flex items-center justify-between mb-5">
+            <span
+              className="text-xs font-jetbrains px-3 py-1 rounded-full"
+              style={{ color: TYPE_COLORS[item.type], background: TYPE_BG[item.type] }}
+            >
+              {TYPE_LABELS[item.type]}
             </span>
-          ))}
+            <span className="text-xs text-gray-600 font-jetbrains">{item.duration}</span>
+          </div>
+
+          <h3 className="font-grotesk text-xl font-bold text-white mb-1 group-hover:text-gradient transition-all duration-500">
+            {item.title}
+          </h3>
+          <p className="text-gray-600 text-sm mb-4">{item.company}</p>
+          <p className="text-gray-500 text-sm leading-relaxed mb-5">{item.description}</p>
+
+          <div className="flex flex-wrap gap-2">
+            {item.skills.map(s => (
+              <span key={s} className="tag">{s}</span>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
 
-    {/* Center dot */}
-    <div className="hidden md:flex shrink-0 w-16 h-16 items-center justify-center relative z-10">
-      <div
-        className="w-5 h-5 rounded-full border-2 border-[#0D0D0D]"
-        style={{ background: TYPE_COLORS[item.type], boxShadow: `0 0 15px ${TYPE_COLORS[item.type]}60` }}
-      />
-    </div>
+      {/* Center node */}
+      <div className="hidden md:flex shrink-0 w-20 justify-center relative z-10">
+        <motion.div
+          initial={{ scale: 0 }}
+          whileInView={{ scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: index * 0.1 + 0.3, type: 'spring', stiffness: 300, damping: 20 }}
+          className="w-5 h-5 rounded-full border-2 border-[#080808]"
+          style={{
+            background: TYPE_COLORS[item.type],
+            boxShadow: `0 0 16px ${TYPE_COLORS[item.type]}70`,
+          }}
+        />
+      </div>
 
-    {/* Spacer */}
-    <div className="hidden md:block md:w-[calc(50%-32px)]" />
-  </motion.div>
-));
+      <div className="hidden md:block md:w-[calc(50%-40px)]" />
+    </motion.div>
+  );
+});
 ExperienceCard.displayName = 'ExperienceCard';
 
-const Experience = memo(() => (
-  <section id="experience" className="relative py-24 md:py-36 bg-[#0D0D0D] overflow-hidden">
-    <div className="absolute left-0 top-1/2 w-[400px] h-[400px] bg-secondary/8 blur-[130px] rounded-full pointer-events-none" />
+const Experience = memo(() => {
+  const sectionRef = useRef(null);
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] });
+  const lineH = useTransform(scrollYProgress, [0.1, 0.9], ['0%', '100%']);
 
-    <div className="max-w-5xl mx-auto px-6 lg:px-12">
+  return (
+    <section id="experience" ref={sectionRef} className="relative py-28 md:py-40 overflow-hidden" style={{ background: '#0D0D0D' }}>
+      {/* Ambient */}
+      <div className="absolute left-[-5%] top-1/2 w-[500px] h-[500px] bg-secondary/7 blur-[150px] rounded-full pointer-events-none" />
+
+      {/* Divider */}
       <motion.div
-        variants={staggerContainer(0.1)}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.1 }}
-        className="text-center mb-20"
-      >
-        <motion.p variants={fadeInUp} className="text-primary font-fira text-sm mb-3 tracking-widest uppercase">07 — Journey</motion.p>
-        <motion.h2 variants={fadeInUp} className="font-syne text-4xl md:text-6xl font-bold text-white">
-          Experience & <span className="text-gradient">Education.</span>
-        </motion.h2>
-      </motion.div>
+        initial={{ scaleX: 0 }}
+        whileInView={{ scaleX: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }}
+        className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent origin-left"
+      />
 
-      {/* Timeline */}
-      <div className="relative">
-        {/* Center line */}
-        <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-gradient-to-b from-primary via-secondary to-accent opacity-30 hidden md:block" />
+      <div className="max-w-5xl mx-auto px-6 lg:px-12 relative z-10">
+        {/* Header */}
+        <div className="mb-20 text-center">
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="section-label mb-4"
+          >
+            07 — Journey
+          </motion.p>
+          <div className="overflow-hidden">
+            <motion.h2
+              initial={{ y: '100%' }}
+              whileInView={{ y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
+              className="heading-lg"
+            >
+              Experience & <span className="text-gradient">Education.</span>
+            </motion.h2>
+          </div>
+        </div>
 
-        <div className="space-y-16">
-          {EXPERIENCE.map((item, i) => (
-            <ExperienceCard key={item.id} item={item} i={i} />
-          ))}
+        {/* Timeline */}
+        <div className="relative">
+          {/* Scroll-driven line */}
+          <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/5 -translate-x-1/2 hidden md:block">
+            <motion.div
+              className="w-full bg-gradient-to-b from-primary via-secondary to-accent rounded-full"
+              style={{ height: lineH }}
+            />
+          </div>
+
+          <div className="space-y-12">
+            {EXPERIENCE.map((item, i) => (
+              <ExperienceCard key={item.id} item={item} index={i} />
+            ))}
+          </div>
         </div>
       </div>
-    </div>
-  </section>
-));
+    </section>
+  );
+});
 Experience.displayName = 'Experience';
 
 export default Experience;

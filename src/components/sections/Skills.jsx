@@ -1,172 +1,326 @@
-import React, { memo } from 'react';
-import {
-  FaHtml5, FaCss3Alt, FaJs, FaReact, FaNodeJs, FaBootstrap, FaGithub, FaFigma,
+import React, { memo, useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FaReact, FaNodeJs, FaGithub, FaFigma, FaCodeBranch, FaSearch, FaTerminal
 } from 'react-icons/fa';
-import {
-  SiTypescript, SiExpress, SiMongodb, SiTailwindcss, SiRedux, SiFirebase,
-  SiCplusplus, SiFramer, SiVite, SiGsap, SiJsonwebtokens,
+import { 
+  SiTypescript, SiExpress, SiMongodb, SiTailwindcss, SiRedux, SiFirebase, 
+  SiVite, SiVercel, SiJavascript, SiJsonwebtokens
 } from 'react-icons/si';
-import { motion } from 'framer-motion';
-import { SKILL_CATEGORIES } from '../../utils/constants';
-import { staggerContainer, fadeInUp } from '../../utils/animations';
-import { useState, useMemo, useCallback } from 'react';
 
-const SKILLS = [
-  { name: 'HTML5',         icon: FaHtml5,        pct: 95, cat: 'Frontend',  color: '#E34F26' },
-  { name: 'CSS3',          icon: FaCss3Alt,       pct: 90, cat: 'Frontend',  color: '#1572B6' },
-  { name: 'JavaScript',    icon: FaJs,            pct: 88, cat: 'Frontend',  color: '#F7DF1E' },
-  { name: 'TypeScript',    icon: SiTypescript,    pct: 76, cat: 'Frontend',  color: '#3178C6' },
-  { name: 'React.js',      icon: FaReact,         pct: 92, cat: 'Frontend',  color: '#61DAFB' },
-  { name: 'Redux',         icon: SiRedux,         pct: 80, cat: 'Frontend',  color: '#764ABC' },
-  { name: 'Tailwind CSS',  icon: SiTailwindcss,   pct: 95, cat: 'Frontend',  color: '#06B6D4' },
-  { name: 'Bootstrap',     icon: FaBootstrap,     pct: 85, cat: 'Frontend',  color: '#7952B3' },
-  { name: 'Framer Motion', icon: SiFramer,        pct: 82, cat: 'Frontend',  color: '#FF0055' },
-  { name: 'Node.js',       icon: FaNodeJs,        pct: 83, cat: 'Backend',   color: '#339933' },
-  { name: 'Express.js',    icon: SiExpress,       pct: 85, cat: 'Backend',   color: '#ffffff' },
-  { name: 'REST APIs',     icon: SiJsonwebtokens, pct: 88, cat: 'Backend',   color: '#f97316' },
-  { name: 'JWT Auth',      icon: SiJsonwebtokens, pct: 82, cat: 'Backend',   color: '#a855f7' },
-  { name: 'MongoDB',       icon: SiMongodb,       pct: 85, cat: 'Database',  color: '#47A248' },
-  { name: 'Firebase',      icon: SiFirebase,      pct: 75, cat: 'Database',  color: '#FFCA28' },
-  { name: 'Git/GitHub',    icon: FaGithub,        pct: 90, cat: 'Tools',     color: '#ffffff' },
-  { name: 'Vite',          icon: SiVite,          pct: 88, cat: 'Tools',     color: '#646CFF' },
-  { name: 'GSAP',          icon: SiGsap,          pct: 74, cat: 'Tools',     color: '#88CE02' },
-  { name: 'Figma',         icon: FaFigma,         pct: 70, cat: 'Tools',     color: '#F24E1E' },
-  { name: 'C++',           icon: SiCplusplus,     pct: 85, cat: 'Languages', color: '#00599C' },
-  // TypeScript intentionally kept once per category — deduped below
+// ── DATA ─────────────────────────────────────────────────────────────
+const TECHNOLOGIES = [
+  { 
+    id: 'react', name: 'React', category: 'Frontend', icon: FaReact, color: '#3b82f6',
+    exp: '2+ Years', level: 'Expert', 
+    desc: 'The core of my frontend architecture. I build highly interactive SPAs using custom hooks, Context API, and strictly optimized render cycles.',
+    projects: ['ReelMatic', 'ShopSphere', 'Portfolio'],
+    code: `function useMagneticCursor() {\n  const cursor = useRef(null);\n  useEffect(() => {\n    // requestAnimationFrame logic\n    // bypassing React state for 60fps\n  }, []);\n}`,
+    libraries: ['Framer Motion', 'React Router', 'Lucide']
+  },
+  { 
+    id: 'node', name: 'Node.js', category: 'Backend', icon: FaNodeJs, color: '#22c55e',
+    exp: '2 Years', level: 'Advanced', 
+    desc: 'My go-to runtime for building scalable backend services. I focus on event-driven architecture and asynchronous performance.',
+    projects: ['DevConnect', 'ShopSphere'],
+    code: `app.use(express.json());\n\napp.post('/api/v1/auth', async (req, res) => {\n  const token = generateJWT(user._id);\n  res.cookie('token', token);\n  return res.status(200).json({ success: true });\n});`,
+    libraries: ['Socket.io', 'Mongoose', 'Bcrypt']
+  },
+  { 
+    id: 'mongodb', name: 'MongoDB', category: 'Database', icon: SiMongodb, color: '#22c55e',
+    exp: '2 Years', level: 'Advanced', 
+    desc: 'NoSQL database used for high-volume data operations. I specialize in complex aggregation pipelines and indexing strategies.',
+    projects: ['TaskFlow', 'RestaurantPOS'],
+    code: `db.orders.aggregate([\n  { $match: { status: "completed" } },\n  { $group: { \n      _id: "$userId", \n      total: { $sum: "$amount" } \n  }}\n])`,
+    libraries: ['Mongoose', 'MongoDB Atlas']
+  },
+  { 
+    id: 'js', name: 'JavaScript', category: 'Language', icon: SiJavascript, color: '#eab308',
+    exp: '3+ Years', level: 'Expert', 
+    desc: 'My primary programming language. Deep understanding of ES6+, closures, the event loop, and DOM manipulation.',
+    projects: ['All Projects'],
+    code: `const optimizedDebounce = (fn, d) => {\n  let id;\n  return (...args) => {\n    clearTimeout(id);\n    id = setTimeout(() => fn(...args), d);\n  }\n}`,
+    libraries: ['ES6+', 'DOM API', 'WebSockets']
+  },
+  { 
+    id: 'tailwind', name: 'Tailwind CSS', category: 'Frontend', icon: SiTailwindcss, color: '#06b6d4',
+    exp: '2 Years', level: 'Expert', 
+    desc: 'Utility-first CSS for rapid UI development. I create complex, responsive layouts with custom design tokens.',
+    projects: ['Portfolio', 'ShopSphere'],
+    code: `// Custom Tailwind Config\nmodule.exports = {\n  theme: {\n    extend: {\n      animation: {\n        'blob': 'blob 7s infinite',\n      }\n    }\n  }\n}`,
+    libraries: ['PostCSS', 'Autoprefixer']
+  },
+  { 
+    id: 'express', name: 'Express.js', category: 'Backend', icon: SiExpress, color: '#9ca3af',
+    exp: '2 Years', level: 'Advanced', 
+    desc: 'Minimalist web framework for Node.js. Used for creating robust RESTful APIs and middleware chains.',
+    projects: ['DevConnect', 'ShopSphere'],
+    code: `const authMiddleware = (req, res, next) => {\n  const token = req.headers.authorization;\n  if (!token) return res.sendStatus(401);\n  next();\n}`,
+    libraries: ['Cors', 'Helmet', 'Morgan']
+  },
+  { 
+    id: 'typescript', name: 'TypeScript', category: 'Language', icon: SiTypescript, color: '#3b82f6',
+    exp: '2 Years', level: 'Intermediate', 
+    desc: 'Adding strict static typing to JavaScript for enterprise-grade application stability and better DX.',
+    projects: ['Next-Gen CMS'],
+    code: `interface User {\n  id: string;\n  role: 'admin' | 'user';\n  permissions: string[];\n}\n\nfunction checkAccess(u: User) {\n  return u.role === 'admin';\n}`,
+    libraries: ['Zod', 'TS-Node']
+  }
 ];
 
-const getLabel = (pct) =>
-  pct >= 90 ? 'Expert' : pct >= 80 ? 'Advanced' : pct >= 70 ? 'Proficient' : 'Familiar';
+const CATEGORIES = ['All', 'Frontend', 'Backend', 'Database', 'Language'];
 
-/**
- * SkillCard — memoized so it never re-renders unless props change.
- * Hover glow via CSS box-shadow (no whileHover animating non-GPU props).
- */
-const SkillCard = memo(({ name, icon: Icon, pct, color }) => (
-  <motion.div
-    /* No `layout` prop — removes expensive layout recalculation on filter */
-    initial={{ opacity: 0, scale: 0.85 }}
-    animate={{ opacity: 1, scale: 1 }}
-    exit={{ opacity: 0, scale: 0.85 }}
-    transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-    className="glass-card rounded-2xl p-5 group border border-white/5 transition-all duration-300 cursor-default skill-card"
-    style={{ '--skill-glow': color }}
-  >
-    <div className="flex items-center gap-3 mb-4">
-      <div className="w-10 h-10 rounded-xl glass flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
-        <Icon size={22} style={{ color }} />
-      </div>
-      <div>
-        <h3 className="text-white font-semibold text-sm">{name}</h3>
-        <span className="text-gray-600 text-xs font-fira">{pct}%</span>
-      </div>
-    </div>
+// ── COMPONENT ────────────────────────────────────────────────────────
+const Skills = memo(() => {
+  const [search, setSearch] = useState('');
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [activeTechId, setActiveTechId] = useState(TECHNOLOGIES[0].id);
 
-    {/* Progress bar — whileInView once, no continuous animation */}
-    <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
-      <motion.div
-        initial={{ width: 0 }}
-        whileInView={{ width: `${pct}%` }}
-        viewport={{ once: true }}
-        transition={{ duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-        className="h-full rounded-full"
-        style={{ background: `linear-gradient(90deg, ${color}88, ${color})` }}
-      />
-    </div>
-
-    <div className="mt-2 text-right">
-      <span className="text-xs text-gray-600 font-fira">{getLabel(pct)}</span>
-    </div>
-  </motion.div>
-));
-SkillCard.displayName = 'SkillCard';
-
-const Skills = () => {
-  const [active, setActive] = useState('All');
-
-  // useMemo so filter only recomputes when `active` changes — not on every render
-  const filtered = useMemo(() => {
-    const seen = new Set();
-    return SKILLS.filter((s) => {
-      const key = `${s.name}-${s.cat}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return active === 'All' || s.cat === active;
+  // Derived state
+  const activeTech = useMemo(() => TECHNOLOGIES.find(t => t.id === activeTechId), [activeTechId]);
+  
+  const filteredTechs = useMemo(() => {
+    return TECHNOLOGIES.filter(t => {
+      const matchesSearch = t.name.toLowerCase().includes(search.toLowerCase());
+      const matchesCat = activeCategory === 'All' || t.category === activeCategory;
+      return matchesSearch && matchesCat;
     });
-  }, [active]);
+  }, [search, activeCategory]);
 
-  const handleTabClick = useCallback((cat) => setActive(cat), []);
+  // If filter hides the active tech, switch to the first available one
+  if (filteredTechs.length > 0 && !filteredTechs.find(t => t.id === activeTechId)) {
+    setActiveTechId(filteredTechs[0].id);
+  }
 
   return (
-    <section id="skills" className="relative py-24 md:py-36 bg-[#0A0A0A] overflow-hidden">
-      {/* Ambient blob — pointer-events-none, no interaction cost */}
-      <div className="absolute left-[-5%] top-1/3 w-[400px] h-[400px] bg-accent/8 blur-[130px] rounded-full pointer-events-none" />
+    <section id="skills" className="relative py-32 overflow-hidden bg-[#030303] min-h-[100vh]">
+      
+      {/* Background Ambience */}
+      <div className="absolute inset-0 pointer-events-none opacity-20 mix-blend-screen" 
+           style={{ background: 'radial-gradient(circle at top right, rgba(37,99,235,0.15) 0%, transparent 60%)' }} />
+      <div className="absolute inset-0 pointer-events-none opacity-10 mesh-bg" />
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
-        <motion.div
-          variants={staggerContainer(0.1)}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.15 }}
-          className="text-center mb-16"
-        >
-          <motion.p variants={fadeInUp} className="text-primary font-fira text-sm mb-3 tracking-widest uppercase">02 — Skills</motion.p>
-          <motion.h2 variants={fadeInUp} className="font-syne text-4xl md:text-6xl font-bold text-white">
-            Technical <span className="text-gradient">Arsenal.</span>
-          </motion.h2>
-          <motion.p variants={fadeInUp} className="text-gray-500 mt-4 max-w-xl mx-auto">
-            Tools and technologies I use to bring ideas from concept to production — with intention and precision.
-          </motion.p>
-        </motion.div>
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-30 pointer-events-auto">
+        
+        {/* Header */}
+        <div className="mb-12 md:mb-16">
+          <p className="section-label mb-4">02 — Stack Interface</p>
+          <div className="overflow-hidden mb-4">
+            <h2 className="heading-lg">System <span className="text-gradient">Architecture.</span></h2>
+          </div>
+          <p className="text-gray-500 max-w-xl text-[15px] leading-relaxed">
+            Welcome to the Developer OS. This interface breaks down my technical stack, the architecture I build with, and exactly how I implement these tools in production environments.
+          </p>
+        </div>
 
-        {/* Filter tabs */}
-        <motion.div
-          variants={staggerContainer(0.05)}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
-          className="flex flex-wrap justify-center gap-3 mb-12"
-        >
-          {SKILL_CATEGORIES.map((cat) => (
-            <motion.button
-              key={cat}
-              variants={fadeInUp}
-              onClick={() => handleTabClick(cat)}
-              className={`relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                active === cat
-                  ? 'bg-primary text-white shadow-glow-blue'
-                  : 'glass text-gray-400 hover:text-white border border-white/10 hover:border-primary/30'
-              }`}
-            >
-              {active === cat && (
-                <motion.span
-                  layoutId="skill-filter"
-                  className="absolute inset-0 rounded-full bg-primary -z-10"
-                  transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
-                />
+        {/* ── THE SOFTWARE DASHBOARD (Master-Detail View) ── */}
+        <div className="w-full rounded-[32px] border border-white/10 bg-[#0a0a0a]/80 backdrop-blur-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col md:flex-row min-h-[700px]">
+          
+          {/* LEFT SIDEBAR: Index/Master View */}
+          <div className="w-full md:w-[320px] shrink-0 border-b md:border-b-0 md:border-r border-white/10 bg-black/40 flex flex-col">
+            
+            {/* macOS Window Controls (Visual only) */}
+            <div className="h-12 flex items-center px-6 gap-2 border-b border-white/5">
+              <div className="w-3 h-3 rounded-full bg-red-500/80" />
+              <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+              <div className="w-3 h-3 rounded-full bg-green-500/80" />
+            </div>
+
+            {/* Search Bar */}
+            <div className="p-5 border-b border-white/5 relative">
+              <FaSearch className="absolute left-8 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+              <input 
+                type="text" 
+                placeholder="Search stack..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary/50 transition-colors font-inter"
+              />
+            </div>
+
+            {/* Category Pills (Horizontal Scroll on Mobile) */}
+            <div className="p-4 border-b border-white/5 overflow-x-auto hide-scrollbar flex gap-2">
+              {CATEGORIES.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-jetbrains transition-all duration-300 ${
+                    activeCategory === cat ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Technology List */}
+            <div className="flex-1 overflow-y-auto hide-scrollbar p-3 space-y-1 h-[250px] md:h-auto">
+              {filteredTechs.length === 0 ? (
+                <div className="text-gray-600 text-xs font-jetbrains text-center mt-10">No modules found.</div>
+              ) : (
+                filteredTechs.map(tech => {
+                  const isActive = activeTechId === tech.id;
+                  const Icon = tech.icon;
+                  return (
+                    <button
+                      key={tech.id}
+                      onClick={() => setActiveTechId(tech.id)}
+                      className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 relative group text-left ${
+                        isActive ? 'bg-white/10' : 'hover:bg-white/5'
+                      }`}
+                    >
+                      {isActive && (
+                        <motion.div 
+                          layoutId="activeIndicator"
+                          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1/2 bg-primary rounded-r-full"
+                          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                        />
+                      )}
+                      <Icon size={18} style={{ color: isActive ? tech.color : '#6b7280' }} className="transition-colors duration-300" />
+                      <div className="flex-1">
+                        <div className={`text-sm font-medium transition-colors duration-300 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}`}>
+                          {tech.name}
+                        </div>
+                        <div className="text-[10px] font-jetbrains text-gray-600 uppercase tracking-widest mt-0.5">
+                          {tech.category}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })
               )}
-              {cat}
-            </motion.button>
-          ))}
-        </motion.div>
+            </div>
+          </div>
 
-        {/* Grid — NO layout prop, prevents full layout recalculation on filter change */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filtered.map((skill) => (
-            <SkillCard key={`${skill.name}-${skill.cat}`} {...skill} />
-          ))}
+          {/* RIGHT PANEL: Detail View (The Dashboard) */}
+          <div className="flex-1 p-6 md:p-10 relative overflow-y-auto hide-scrollbar bg-gradient-to-br from-white/[0.02] to-transparent">
+            <AnimatePresence mode="wait">
+              {activeTech && (
+                <motion.div
+                  key={activeTech.id}
+                  initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
+                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  exit={{ opacity: 0, y: -10, filter: 'blur(4px)' }}
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  className="h-full flex flex-col"
+                >
+                  {/* Header */}
+                  <div className="flex items-center gap-6 mb-10">
+                    <div 
+                      className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl shadow-2xl relative"
+                      style={{ backgroundColor: `${activeTech.color}15`, border: `1px solid ${activeTech.color}40` }}
+                    >
+                      <div className="absolute inset-0 blur-xl opacity-50" style={{ backgroundColor: activeTech.color }} />
+                      <activeTech.icon className="relative z-10" style={{ color: activeTech.color }} />
+                    </div>
+                    <div>
+                      <h3 className="text-4xl font-grotesk font-bold text-white mb-2 tracking-tight">{activeTech.name}</h3>
+                      <div className="flex items-center gap-3">
+                        <span className="px-3 py-1 rounded-full text-[10px] font-jetbrains uppercase tracking-widest border" style={{ borderColor: `${activeTech.color}40`, color: activeTech.color }}>
+                          {activeTech.category} Module
+                        </span>
+                        <span className="text-gray-500 text-xs font-jetbrains flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Operational
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Grid Layout for details */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1">
+                    
+                    {/* Left Column */}
+                    <div className="space-y-6">
+                      
+                      {/* Description Card */}
+                      <div className="glass-premium p-6 rounded-2xl border border-white/5">
+                        <div className="text-xs font-jetbrains text-gray-500 uppercase tracking-widest mb-3">Architecture Role</div>
+                        <p className="text-gray-300 text-sm leading-relaxed font-inter">
+                          {activeTech.desc}
+                        </p>
+                      </div>
+
+                      {/* Stats Row */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="glass-premium p-5 rounded-2xl border border-white/5 flex flex-col justify-center">
+                          <div className="text-xs font-jetbrains text-gray-500 uppercase tracking-widest mb-1">Time in Prod</div>
+                          <div className="text-xl font-grotesk font-bold text-white">{activeTech.exp}</div>
+                        </div>
+                        <div className="glass-premium p-5 rounded-2xl border border-white/5 flex flex-col justify-center">
+                          <div className="text-xs font-jetbrains text-gray-500 uppercase tracking-widest mb-1">Competency</div>
+                          <div className="text-xl font-grotesk font-bold" style={{ color: activeTech.color }}>{activeTech.level}</div>
+                        </div>
+                      </div>
+
+                      {/* Libraries */}
+                      <div className="glass-premium p-6 rounded-2xl border border-white/5">
+                        <div className="text-xs font-jetbrains text-gray-500 uppercase tracking-widest mb-4">Integrated Tooling</div>
+                        <div className="flex flex-wrap gap-2">
+                          {activeTech.libraries.map(lib => (
+                            <span key={lib} className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 text-xs text-gray-300">
+                              {lib}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* Right Column (Code Window + Projects) */}
+                    <div className="space-y-6 flex flex-col h-full">
+                      
+                      {/* Code Snippet Window */}
+                      <div className="glass-premium rounded-2xl border border-white/10 overflow-hidden flex-1 min-h-[220px] flex flex-col">
+                        <div className="bg-black/60 px-4 py-2 flex items-center justify-between border-b border-white/5">
+                          <div className="flex gap-2">
+                            <div className="w-2.5 h-2.5 rounded-full bg-white/20" />
+                            <div className="w-2.5 h-2.5 rounded-full bg-white/20" />
+                            <div className="w-2.5 h-2.5 rounded-full bg-white/20" />
+                          </div>
+                          <div className="flex items-center gap-2 text-[10px] font-jetbrains text-gray-500 uppercase">
+                            <FaTerminal size={10} /> snippet.js
+                          </div>
+                        </div>
+                        <div className="p-5 overflow-x-auto hide-scrollbar bg-black/40 flex-1">
+                          <pre className="text-sm font-jetbrains leading-relaxed">
+                            <code className="text-gray-300">
+                              {activeTech.code.split('\n').map((line, i) => (
+                                <div key={i} className="table-row">
+                                  <span className="table-cell text-gray-700 pr-4 select-none">{i + 1}</span>
+                                  <span className="table-cell whitespace-pre">{line}</span>
+                                </div>
+                              ))}
+                            </code>
+                          </pre>
+                        </div>
+                      </div>
+
+                      {/* Related Projects */}
+                      <div className="glass-premium p-6 rounded-2xl border border-white/5">
+                        <div className="text-xs font-jetbrains text-gray-500 uppercase tracking-widest mb-4">Deployed In</div>
+                        <div className="flex flex-col gap-2">
+                          {activeTech.projects.map(project => (
+                            <div key={project} className="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-2 -mx-2 rounded-lg transition-colors">
+                              <span className="text-sm text-gray-300 font-medium group-hover:text-white transition-colors">{project}</span>
+                              <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-primary/20 group-hover:border-primary/50 transition-colors">
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
-
-      {/* CSS hover glow — avoids animating box-shadow with JS */}
-      <style>{`
-        .skill-card:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 0 30px color-mix(in srgb, var(--skill-glow) 13%, transparent), 0 8px 32px rgba(0,0,0,0.5);
-        }
-      `}</style>
     </section>
   );
-};
+});
 
+Skills.displayName = 'Skills';
 export default Skills;

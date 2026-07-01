@@ -1,276 +1,218 @@
-import React, { useState, useCallback, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaWhatsapp, FaLinkedin, FaGithub, FaEnvelope, FaMapMarkerAlt } from 'react-icons/fa';
-import { FiSend, FiCheck, FiAlertCircle } from 'react-icons/fi';
+import React, { memo, useState, useCallback, useRef } from 'react';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { FaPaperPlane, FaEnvelope, FaMapMarkerAlt, FaWhatsapp, FaLinkedin, FaGithub } from 'react-icons/fa';
 import { SITE } from '../../utils/constants';
 import { sendEmail } from '../../services/emailService';
-import { staggerContainer, fadeInLeft, fadeInRight, fadeInUp } from '../../utils/animations';
 
-const CONTACT_CARDS = [
-  { icon: FaWhatsapp,   label: 'WhatsApp', value: SITE.phone,     href: SITE.whatsapp,            color: '#25D366' },
-  { icon: FaLinkedin,   label: 'LinkedIn', value: 'dharmendrabaria', href: SITE.linkedin,          color: '#0A66C2' },
-  { icon: FaGithub,     label: 'GitHub',   value: 'dharmendrabaria', href: SITE.github,            color: '#ffffff' },
-  { icon: FaEnvelope,   label: 'Email',    value: SITE.email,     href: `mailto:${SITE.email}`,    color: '#EF4444' },
-];
-
-const inputClass = `w-full glass border border-white/10 rounded-xl px-5 py-4 text-white placeholder-gray-600 text-sm outline-none 
-  focus:border-primary/50 transition-all duration-300 bg-transparent font-inter`;
-
-const shakeVariant = {
-  shake: { x: [0, -8, 8, -8, 8, 0], transition: { duration: 0.5 } },
-  normal: { x: 0 },
-};
-
-/**
- * ContactCard — memoized to prevent re-render when form state changes
- */
-const ContactCard = memo(({ icon: Icon, label, value, href, color }) => (
-  <a
+const ContactMethod = memo(({ icon: Icon, title, value, href, delay }) => (
+  <motion.a
     href={href}
     target="_blank"
     rel="noopener noreferrer"
-    className="flex items-center gap-4 glass-card rounded-2xl p-4 border border-white/5 hover:border-primary/30 transition-all duration-300 group"
+    initial={{ opacity: 0, x: -30 }}
+    whileInView={{ opacity: 1, x: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
+    className="group flex items-center gap-4 glass-premium p-4 rounded-2xl border border-white/6 hover:border-primary/30 transition-colors"
   >
-    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110" style={{ background: `${color}20` }}>
-      <Icon size={18} style={{ color }} />
+    <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-primary group-hover:scale-110 transition-all duration-300">
+      <Icon size={20} />
     </div>
     <div>
-      <div className="text-xs text-gray-600 uppercase tracking-wider">{label}</div>
-      <div className="text-white text-sm font-medium group-hover:text-primary transition-colors">{value}</div>
+      <div className="text-xs text-gray-500 font-jetbrains uppercase tracking-wider mb-1">{title}</div>
+      <div className="text-white font-medium group-hover:text-gradient transition-colors">{value}</div>
     </div>
-  </a>
+  </motion.a>
 ));
-ContactCard.displayName = 'ContactCard';
+ContactMethod.displayName = 'ContactMethod';
+
+const InputField = memo(({ name, type, placeholder, required, value, onChange }) => (
+  <div className="relative group">
+    <input
+      type={type}
+      name={name}
+      placeholder={placeholder}
+      required={required}
+      value={value}
+      onChange={onChange}
+      className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-5 py-4 text-white placeholder-gray-600 focus:outline-none focus:border-primary/50 focus:bg-white/[0.04] transition-all peer font-inter"
+    />
+    {/* Focus glow */}
+    <div className="absolute inset-0 rounded-xl bg-primary/20 opacity-0 peer-focus:opacity-10 blur-xl pointer-events-none transition-opacity" />
+  </div>
+));
+InputField.displayName = 'InputField';
+
+const TextAreaField = memo(({ name, placeholder, required, value, onChange }) => (
+  <div className="relative group">
+    <textarea
+      name={name}
+      placeholder={placeholder}
+      required={required}
+      value={value}
+      onChange={onChange}
+      rows="5"
+      className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-5 py-4 text-white placeholder-gray-600 focus:outline-none focus:border-primary/50 focus:bg-white/[0.04] transition-all peer font-inter resize-none"
+    />
+    <div className="absolute inset-0 rounded-xl bg-primary/20 opacity-0 peer-focus:opacity-10 blur-xl pointer-events-none transition-opacity" />
+  </div>
+));
+TextAreaField.displayName = 'TextAreaField';
 
 const Contact = memo(() => {
-  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
-  const [errors, setErrors] = useState({});
-  const [status, setStatus] = useState('idle'); // idle | sending | success | error
-  const [shakeField, setShakeField] = useState('');
+  const sectionRef = useRef(null);
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] });
+  const formY = useTransform(scrollYProgress, [0, 1], ['10%', '-10%']);
 
-  const validate = useCallback(() => {
-    const e = {};
-    if (!form.name.trim())    e.name    = 'Name is required';
-    if (!form.email.trim())   e.email   = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = 'Invalid email address';
-    if (!form.subject.trim()) e.subject = 'Subject is required';
-    if (!form.message.trim()) e.message = 'Message is required';
-    return e;
-  }, [form]);
+  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [status, setStatus] = useState('idle'); // idle, sending, success, error
+
+  const handleChange = useCallback((e) => {
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  }, []);
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length > 0) {
-      setErrors(errs);
-      const firstKey = Object.keys(errs)[0];
-      setShakeField(firstKey);
-      setTimeout(() => setShakeField(''), 600);
-      return;
-    }
-    setErrors({});
     setStatus('sending');
-    try {
-      const result = await sendEmail(form);
-      if (result.success) {
-        setStatus('success');
-        setForm({ name: '', email: '', subject: '', message: '' });
-      } else {
-        setStatus('error');
-      }
-    } catch {
+    const success = await sendEmail(form);
+    if (success) {
+      setStatus('success');
+      setForm({ name: '', email: '', subject: '', message: '' });
+      setTimeout(() => setStatus('idle'), 5000);
+    } else {
       setStatus('error');
+      setTimeout(() => setStatus('idle'), 3000);
     }
-    setTimeout(() => setStatus('idle'), 5000);
-  }, [form, validate]);
-
-  const handleChange = useCallback((field, val) => {
-    setForm((f) => ({ ...f, [field]: val }));
-    setErrors((e) => {
-      if (e[field]) {
-        const next = { ...e };
-        delete next[field];
-        return next;
-      }
-      return e;
-    });
-  }, []);
+  }, [form]);
 
   return (
-    <section id="contact" className="relative py-24 md:py-36 bg-[#0A0A0A] overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 100%, rgba(37,99,235,0.08), transparent)' }} />
+    <section id="contact" ref={sectionRef} className="relative py-28 md:py-40 overflow-hidden" style={{ background: '#0D0D0D' }}>
+      {/* Background Aurora */}
+      <div className="absolute inset-0 pointer-events-none aurora-bg opacity-30" />
+      
+      {/* Divider */}
+      <motion.div
+        initial={{ scaleX: 0 }}
+        whileInView={{ scaleX: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }}
+        className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent origin-center"
+      />
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
-        {/* Header */}
-        <motion.div
-          variants={staggerContainer(0.1)}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.1 }}
-          className="text-center mb-20"
-        >
-          <motion.p variants={fadeInUp} className="text-primary font-fira text-sm mb-3 tracking-widest uppercase">10 — Contact</motion.p>
-          <motion.h2 variants={fadeInUp} className="font-syne text-4xl md:text-6xl font-bold text-white">
-            Let's Build <span className="text-gradient">Together.</span>
-          </motion.h2>
-          <motion.p variants={fadeInUp} className="text-gray-500 mt-4 max-w-xl mx-auto">
-            Have a project in mind? I'd love to hear about it. Drop a message and I'll respond within 24 hours.
-          </motion.p>
-        </motion.div>
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
+        <div className="grid lg:grid-cols-5 gap-16 lg:gap-8 items-center">
+          
+          {/* Left Column */}
+          <div className="lg:col-span-2">
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="section-label mb-4"
+            >
+              10 — Contact
+            </motion.p>
+            <div className="overflow-hidden mb-6">
+              <motion.h2
+                initial={{ y: '100%' }}
+                whileInView={{ y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
+                className="heading-lg"
+              >
+                Let's Build <br />
+                <span className="text-gradient">Together.</span>
+              </motion.h2>
+            </div>
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="text-gray-500 text-[15px] leading-relaxed mb-12 max-w-md"
+            >
+              Have a project in mind, looking for a developer, or just want to chat? 
+              I'm always open to discussing product design work or partnership opportunities.
+            </motion.p>
 
-        <div className="grid lg:grid-cols-5 gap-12 items-start">
-          {/* Left: contact info */}
+            <div className="space-y-4">
+              <ContactMethod icon={FaEnvelope} title="Email" value={SITE.email} href={`mailto:${SITE.email}`} delay={0.3} />
+              <ContactMethod icon={FaWhatsapp} title="WhatsApp" value={SITE.phone} href={SITE.whatsapp} delay={0.4} />
+              <ContactMethod icon={FaMapMarkerAlt} title="Location" value="Gujarat, India" href="#" delay={0.5} />
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.7 }}
+              className="flex gap-4 mt-12"
+            >
+              <a href={SITE.github} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full glass flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+                <FaGithub size={18} />
+              </a>
+              <a href={SITE.linkedin} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full glass flex items-center justify-center text-gray-400 hover:text-[#0a66c2] hover:bg-white/10 transition-colors">
+                <FaLinkedin size={18} />
+              </a>
+            </motion.div>
+          </div>
+
+          {/* Right Column - Form */}
           <motion.div
-            variants={fadeInLeft}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.2 }}
-            className="lg:col-span-2 space-y-6"
+            style={{ y: formY }}
+            className="lg:col-span-3 relative"
           >
-            <div>
-              <h3 className="font-syne text-2xl font-bold text-white mb-2">Get in Touch</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">
-                Open to full-time opportunities, freelance projects, and collaborations. If it's exciting, I'm in.
-              </p>
-            </div>
-
-            {/* Contact cards — memoized, won't re-render with form state */}
-            <div className="space-y-3">
-              {CONTACT_CARDS.map((card) => (
-                <ContactCard key={card.label} {...card} />
-              ))}
-            </div>
-
-            {/* Availability */}
-            <div className="glass-card rounded-2xl p-5 border border-green-500/20">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500" />
-                </span>
-                <span className="text-green-400 font-medium text-sm">Currently Available</span>
+            {/* Glow under form */}
+            <div className="absolute inset-0 bg-primary/20 blur-[100px] rounded-full pointer-events-none" />
+            
+            <motion.form
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              onSubmit={handleSubmit}
+              className="relative glass-premium rounded-3xl p-8 md:p-12 border border-white/10"
+            >
+              <div className="grid md:grid-cols-2 gap-6 mb-6">
+                <InputField name="name" type="text" placeholder="Your Name" required value={form.name} onChange={handleChange} />
+                <InputField name="email" type="email" placeholder="Your Email" required value={form.email} onChange={handleChange} />
               </div>
-              <p className="text-gray-500 text-xs leading-relaxed">
-                Open to full-time roles, internships, and freelance projects starting immediately.
-              </p>
-            </div>
-
-            {/* Embedded map placeholder */}
-            <div className="rounded-2xl overflow-hidden h-44 glass border border-white/5 flex items-center justify-center">
-              <div className="text-center text-gray-600">
-                <FaMapMarkerAlt size={28} className="mx-auto mb-2 text-primary/50" />
-                <p className="text-sm">{SITE.location}</p>
-                <p className="text-xs mt-1 text-gray-700">Available for remote work worldwide</p>
+              <div className="mb-6">
+                <InputField name="subject" type="text" placeholder="Subject" required value={form.subject} onChange={handleChange} />
               </div>
-            </div>
-          </motion.div>
-
-          {/* Right: form */}
-          <motion.div
-            variants={fadeInRight}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.2 }}
-            className="lg:col-span-3"
-          >
-            <form onSubmit={handleSubmit} noValidate className="glass-card rounded-3xl p-8 md:p-10 border border-white/5 space-y-5">
-              <div className="grid md:grid-cols-2 gap-5">
-                {/* Name */}
-                <div>
-                  <motion.div variants={shakeVariant} animate={shakeField === 'name' ? 'shake' : 'normal'}>
-                    <input
-                      type="text"
-                      placeholder="Your Name"
-                      value={form.name}
-                      onChange={(e) => handleChange('name', e.target.value)}
-                      className={`${inputClass} ${errors.name ? 'border-red-500/50' : ''}`}
-                    />
-                  </motion.div>
-                  {errors.name && <p className="text-red-400 text-xs mt-1 ml-1">{errors.name}</p>}
-                </div>
-
-                {/* Email */}
-                <div>
-                  <motion.div variants={shakeVariant} animate={shakeField === 'email' ? 'shake' : 'normal'}>
-                    <input
-                      type="email"
-                      placeholder="your@email.com"
-                      value={form.email}
-                      onChange={(e) => handleChange('email', e.target.value)}
-                      className={`${inputClass} ${errors.email ? 'border-red-500/50' : ''}`}
-                    />
-                  </motion.div>
-                  {errors.email && <p className="text-red-400 text-xs mt-1 ml-1">{errors.email}</p>}
-                </div>
+              <div className="mb-8">
+                <TextAreaField name="message" placeholder="Project Details or Message" required value={form.message} onChange={handleChange} />
               </div>
 
-              {/* Subject */}
-              <div>
-                <motion.div variants={shakeVariant} animate={shakeField === 'subject' ? 'shake' : 'normal'}>
-                  <input
-                    type="text"
-                    placeholder="Subject"
-                    value={form.subject}
-                    onChange={(e) => handleChange('subject', e.target.value)}
-                    className={`${inputClass} ${errors.subject ? 'border-red-500/50' : ''}`}
-                  />
-                </motion.div>
-                {errors.subject && <p className="text-red-400 text-xs mt-1 ml-1">{errors.subject}</p>}
-              </div>
-
-              {/* Message */}
-              <div>
-                <motion.div variants={shakeVariant} animate={shakeField === 'message' ? 'shake' : 'normal'}>
-                  <textarea
-                    rows={6}
-                    placeholder="Tell me about your project..."
-                    value={form.message}
-                    onChange={(e) => handleChange('message', e.target.value)}
-                    className={`${inputClass} resize-none ${errors.message ? 'border-red-500/50' : ''}`}
-                  />
-                </motion.div>
-                {errors.message && <p className="text-red-400 text-xs mt-1 ml-1">{errors.message}</p>}
-              </div>
-
-              {/* Submit */}
-              <motion.button
+              <button
                 type="submit"
                 disabled={status === 'sending' || status === 'success'}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={`w-full py-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-3 transition-all duration-300 ${
-                  status === 'success'
-                    ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                    : status === 'error'
-                    ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                    : 'bg-primary text-white shadow-glow-blue hover:bg-primary-light'
-                }`}
+                className="w-full btn-primary justify-center text-base py-4 relative overflow-hidden"
               >
                 <AnimatePresence mode="wait">
                   {status === 'idle' && (
-                    <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2">
-                      <FiSend size={16} /> Send Message
+                    <motion.span key="idle" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex items-center gap-2">
+                      Send Message <FaPaperPlane size={14} />
                     </motion.span>
                   )}
                   {status === 'sending' && (
-                    <motion.span key="sending" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2">
-                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Sending...
+                    <motion.span key="sending" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex items-center gap-2">
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Sending...
                     </motion.span>
                   )}
                   {status === 'success' && (
-                    <motion.span key="success" initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex items-center gap-2">
-                      <FiCheck size={16} /> Message Sent!
+                    <motion.span key="success" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="text-green-300">
+                      Message Sent Successfully!
                     </motion.span>
                   )}
                   {status === 'error' && (
-                    <motion.span key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2">
-                      <FiAlertCircle size={16} /> Something went wrong. Try again.
+                    <motion.span key="error" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="text-red-300">
+                      Failed to send. Please try again.
                     </motion.span>
                   )}
                 </AnimatePresence>
-              </motion.button>
-            </form>
+              </button>
+            </motion.form>
           </motion.div>
         </div>
       </div>

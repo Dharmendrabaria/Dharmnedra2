@@ -9,6 +9,7 @@ import Footer from './components/layout/Footer';
 import ScrollProgressBar from './components/ui/ScrollProgressBar';
 import FloatingDock from './components/ui/FloatingDock';
 import CommandPalette from './components/ui/CommandPalette';
+import EasterEggs from './components/ui/EasterEggs';
 import Home from './pages/Home';
 import { useKonami } from './hooks/useKonami';
 import ConfettiExplosion from './components/ui/ConfettiExplosion';
@@ -25,7 +26,7 @@ const MainContent = memo(({ onCommandOpen, commandOpen, onCommandClose }) => (
     </main>
     <Footer />
     <FloatingDock />
-    <CommandPalette open={commandOpen} onClose={onCommandClose} />
+    <CommandPalette isOpen={commandOpen} onClose={onCommandClose} />
   </div>
 ));
 MainContent.displayName = 'MainContent';
@@ -91,6 +92,7 @@ function App() {
     <>
       <CustomCursor />
       <ScrollProgressBar />
+      <EasterEggs />
       {confetti && <ConfettiExplosion />}
 
       <AnimatePresence mode="wait">

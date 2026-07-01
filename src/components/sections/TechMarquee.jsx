@@ -30,17 +30,10 @@ const TECHS = [
   { icon: FaBootstrap,   name: 'Bootstrap',  color: '#7952B3' },
 ];
 
-/**
- * TechLogo — pure CSS hover (no Framer Motion), identical visual result.
- * Replacing whileHover with CSS 3D transform eliminates ~80 spring physics
- * calculations running while the marquee scrolls.
- */
 const TechLogo = memo(({ icon: Icon, name, color }) => (
-  <div
-    className="tech-logo flex items-center gap-3 glass rounded-xl px-5 py-3 mx-3 shrink-0 cursor-default group border border-white/5 hover:border-white/20 transition-colors duration-300"
-  >
-    <Icon size={26} style={{ color }} className="transition-all duration-300 group-hover:drop-shadow-[0_0_8px_currentColor]" />
-    <span className="text-gray-400 group-hover:text-white text-sm font-medium transition-colors whitespace-nowrap">{name}</span>
+  <div className="tech-logo flex items-center gap-3 glass-premium rounded-2xl px-6 py-3.5 mx-3 shrink-0 cursor-default group border border-white/5 hover:border-white/20 transition-all duration-300">
+    <Icon size={24} style={{ color }} className="transition-transform duration-300 group-hover:scale-110 drop-shadow-md" />
+    <span className="text-gray-400 group-hover:text-white text-sm font-grotesk font-medium transition-colors whitespace-nowrap">{name}</span>
   </div>
 ));
 TechLogo.displayName = 'TechLogo';
@@ -48,35 +41,39 @@ TechLogo.displayName = 'TechLogo';
 const firstHalf  = TECHS.slice(0, 10);
 const secondHalf = TECHS.slice(10);
 
-// Pre-built strips — static arrays, defined outside component so they never recreate
 const ROW1 = [...firstHalf,  ...firstHalf,  ...firstHalf,  ...firstHalf ];
 const ROW2 = [...secondHalf, ...secondHalf, ...secondHalf, ...secondHalf];
 
 const TechMarquee = memo(() => (
-  <div className="w-full border-y border-white/5 py-8 bg-[#0A0A0A] overflow-hidden relative">
+  <div className="w-full border-y border-white/5 py-10 overflow-hidden relative" style={{ background: '#080808' }}>
     {/* Fade edges */}
-    <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-[#0A0A0A] to-transparent z-10 pointer-events-none" />
-    <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-[#0A0A0A] to-transparent z-10 pointer-events-none" />
+    <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#080808] to-transparent z-10 pointer-events-none" />
+    <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#080808] to-transparent z-10 pointer-events-none" />
 
-    {/* Row 1 — Left — CSS animation only, no JS physics */}
-    <div className="flex mb-4 hover:[animation-play-state:paused] animate-marquee">
+    {/* Section indicator */}
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 opacity-[0.02] pointer-events-none w-full text-center">
+      <span className="font-grotesk font-bold text-8xl md:text-[12rem] whitespace-nowrap">STACK</span>
+    </div>
+
+    {/* Row 1 */}
+    <div className="flex mb-6 hover:[animation-play-state:paused] animate-marquee relative z-10">
       {ROW1.map((t, i) => <TechLogo key={i} {...t} />)}
     </div>
 
-    {/* Row 2 — Right */}
-    <div className="flex hover:[animation-play-state:paused] animate-marquee-reverse">
+    {/* Row 2 */}
+    <div className="flex hover:[animation-play-state:paused] animate-marquee-reverse relative z-10">
       {ROW2.map((t, i) => <TechLogo key={i} {...t} />)}
     </div>
 
-    {/* CSS-only 3D tilt on hover — zero JS, identical look */}
+    {/* CSS 3D tilt */}
     <style>{`
       .tech-logo {
-        transition: transform 0.3s ease, border-color 0.3s ease;
-        perspective: 400px;
+        perspective: 800px;
         transform-style: preserve-3d;
       }
       .tech-logo:hover {
-        transform: scale(1.2) rotateY(15deg);
+        transform: scale(1.05) rotateX(10deg) translateY(-4px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
       }
     `}</style>
   </div>

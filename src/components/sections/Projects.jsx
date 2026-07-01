@@ -1,324 +1,173 @@
-import React, { useState, useCallback, useMemo, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaGithub, FaExternalLinkAlt, FaSearch, FaTimes } from 'react-icons/fa';
-import projects from '../../data/projects';
-import { staggerContainer, fadeInUp } from '../../utils/animations';
+import React, { memo, useRef, useState, useEffect } from 'react';
+import { FaGithub, FaExternalLinkAlt, FaArrowRight } from 'react-icons/fa';
+import projectsData from '../../data/projects';
 
-const CATEGORIES = ['All', 'fullstack', 'frontend', 'backend'];
+// Limit to top 5 projects for the showcase
+const SHOWCASE_PROJECTS = projectsData.slice(0, 5);
 
-// ── Project Modal ──────────────────────────────────────────────────────────────
-const ProjectModal = memo(({ project, onClose }) => {
-  const [tab, setTab] = useState('overview');
-  const [imgIdx, setImgIdx] = useState(0);
-  const TABS = ['overview', 'features', 'challenges', 'solution'];
+const Projects = memo(() => {
+  const containerRef = useRef(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // Use IntersectionObserver on spacer elements to update active index
+  // Threshold 0.5 means it triggers when spacer is halfway in view
+  useEffect(() => {
+    const observers = [];
+    const elements = document.querySelectorAll('.project-scroll-spacer');
+
+    if (elements.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = Number(entry.target.getAttribute('data-index'));
+            setActiveIndex(index);
+          }
+        });
+      },
+      { root: null, rootMargin: '-30% 0px -30% 0px', threshold: 0 }
+    );
+
+    elements.forEach((el) => {
+      observer.observe(el);
+      observers.push(el);
+    });
+
+    return () => {
+      observers.forEach((el) => observer.unobserve(el));
+      observer.disconnect();
+    };
+  }, []);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-8"
-      onClick={onClose}
-    >
-      {/* Backdrop — separated element so blur only composites once */}
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" />
+    <section id="projects" ref={containerRef} className="relative w-full" style={{ background: '#080808' }}>
 
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0, y: 40 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.9, opacity: 0, y: 40 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        onClick={(e) => e.stopPropagation()}
-        className="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-y-auto glass-card rounded-3xl border border-white/10 no-scrollbar"
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full glass border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-        >
-          <FaTimes size={14} />
-        </button>
+      {/* ── Sticky Storytelling Container ── */}
+      <div className="sticky top-0 w-full h-screen overflow-hidden flex items-center z-10 pointer-events-none">
 
-        {/* Image carousel */}
-        <div className="relative h-56 md:h-80 overflow-hidden rounded-t-3xl bg-black/50">
-          <AnimatePresence mode="wait">
-            <motion.img
-              key={imgIdx}
-              src={project.images[imgIdx] || project.image}
-              alt={project.title}
-              loading="eager"
-              initial={{ opacity: 0, scale: 1.05 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              className="w-full h-full object-cover"
-            />
-          </AnimatePresence>
-          {project.images.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-              {project.images.map((_, i) => (
-                <button
+        {/* Optimized Static Ambient background (No moving blurs) */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(circle at center, #111 0%, #080808 100%)' }} />
+
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 w-full grid lg:grid-cols-2 gap-12 lg:gap-20 items-center pointer-events-auto relative z-10 h-[90vh] md:h-[80vh]">
+
+          {/* Left: Project Info */}
+          <div className="h-full relative flex flex-col justify-center pr-14 lg:pr-0">
+            {/* Header */}
+            <div className="absolute top-0 left-0 pt-28 md:pt-8">
+              <p className="section-label mb-2">04 — Projects</p>
+              <h2 className="heading-lg text-3xl">Selected <span className="text-gradient">Work.</span></h2>
+            </div>
+
+            <div className="mt-24 h-full relative">
+              {SHOWCASE_PROJECTS.map((project, i) => {
+                const isActive = i === activeIndex;
+                return (
+                  <div
+                    key={project.id}
+                    className="absolute inset-0 flex flex-col justify-center max-w-lg transition-all duration-700 ease-[0.16,1,0.3,1] will-change-transform"
+                    style={{
+                      opacity: isActive ? 1 : 0,
+                      transform: isActive ? 'translate3d(0,0,0)' : `translate3d(0, ${i < activeIndex ? '-40px' : '40px'}, 0)`,
+                      pointerEvents: isActive ? 'auto' : 'none',
+                      zIndex: isActive ? 10 : 0
+                    }}
+                  >
+                    <span className="text-xs font-jetbrains text-primary/80 uppercase tracking-widest mb-3 block">
+                      {project.category}
+                    </span>
+                    <h3 className="font-grotesk text-4xl md:text-5xl font-bold text-white mb-6">
+                      {project.title}
+                    </h3>
+                    <p className="text-gray-400 text-base leading-relaxed mb-8">
+                      {project.description}
+                    </p>
+
+                    <div className="flex flex-wrap gap-2 mb-10">
+                      {project.tech.map(t => (
+                        <span key={t} className="tag text-[11px]">{t}</span>
+                      ))}
+                    </div>
+
+                    <div className="flex gap-4">
+                      <a href={project.github} target="_blank" rel="noopener noreferrer" className="btn-glass text-sm py-3 px-6" data-magnetic>
+                        <FaGithub size={16} /> Code
+                      </a>
+                      <a href={project.live} target="_blank" rel="noopener noreferrer" className="btn-primary text-sm py-3 px-6" data-magnetic>
+                        <FaExternalLinkAlt size={14} /> Live Demo
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Progress indicators (CSS only transitions) */}
+            <div className="absolute bottom-0 left-0 flex gap-3 pb-8">
+              {SHOWCASE_PROJECTS.map((_, i) => (
+                <div
                   key={i}
-                  onClick={() => setImgIdx(i)}
-                  className={`h-2 rounded-full transition-all ${i === imgIdx ? 'bg-white w-6' : 'bg-white/40 w-2'}`}
+                  className="h-1 rounded-full overflow-hidden transition-all duration-500 ease-out"
+                  style={{
+                    width: i === activeIndex ? '32px' : '8px',
+                    background: i === activeIndex ? '#2563eb' : 'rgba(255,255,255,0.1)'
+                  }}
                 />
               ))}
             </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-          <div className="absolute bottom-6 left-6">
-            <span className="text-xs font-fira text-primary/80 uppercase tracking-widest">{project.category}</span>
-            <h2 className="font-syne text-2xl md:text-3xl font-bold text-white mt-1">{project.title}</h2>
-          </div>
-        </div>
-
-        <div className="p-6 md:p-8">
-          <div className="flex flex-wrap gap-2 mb-6">
-            {project.tech.map((t) => (
-              <span key={t} className="text-xs glass border border-white/10 rounded-full px-3 py-1 text-gray-300 font-fira">{t}</span>
-            ))}
           </div>
 
-          <div className="flex gap-2 mb-6 border-b border-white/5 pb-4">
-            {TABS.map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition-all duration-300 ${
-                  tab === t ? 'bg-primary text-white' : 'text-gray-500 hover:text-white'
-                }`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
+          {/* Right: MacBook Mockup */}
+          <div className="hidden lg:flex items-center justify-center h-full relative">
+            <div className="relative w-full max-w-2xl" data-cursor="VIEW CASE STUDY">
+              {/* Fake MacBook Frame */}
+              <div className="relative pt-[62%] w-full rounded-2xl bg-[#1a1a1a] border border-[#333] shadow-2xl overflow-hidden transform-gpu translate-z-0">
+                <div className="absolute top-0 left-0 right-0 h-4 bg-[#222] flex items-center justify-center border-b border-[#333] z-20">
+                  <div className="w-1.5 h-1.5 rounded-full bg-black/50" />
+                </div>
 
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={tab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.25 }}
-            >
-              {tab === 'overview'    && <p className="text-gray-400 leading-relaxed">{project.longDescription}</p>}
-              {tab === 'features'   && (
-                <ul className="space-y-3">
-                  {project.features.map((f, i) => (
-                    <li key={i} className="flex items-start gap-3 text-gray-400">
-                      <span className="text-primary mt-1 shrink-0">✓</span>{f}
-                    </li>
+                {/* Screen Content - Render all images and toggle opacity (Hardware accelerated) */}
+                <div className="absolute top-4 left-0 right-0 bottom-0 bg-black overflow-hidden z-10">
+                  {SHOWCASE_PROJECTS.map((project, i) => (
+                    <img
+                      key={`img-${project.id}`}
+                      src={project.image}
+                      alt={project.title}
+                      loading={i === 0 ? "eager" : "lazy"} // Lazy load offscreen images
+                      decoding="async"
+                      className="absolute inset-0 w-full h-full object-cover object-top transition-all duration-700 ease-[0.16,1,0.3,1] will-change-transform"
+                      style={{
+                        opacity: i === activeIndex ? 1 : 0,
+                        transform: i === activeIndex ? 'scale(1) translateZ(0)' : 'scale(1.05) translateZ(0)',
+                        zIndex: i === activeIndex ? 10 : 0
+                      }}
+                    />
                   ))}
-                </ul>
-              )}
-              {tab === 'challenges' && <p className="text-gray-400 leading-relaxed">{project.challenges}</p>}
-              {tab === 'solution'   && <p className="text-gray-400 leading-relaxed">{project.solution}</p>}
-            </motion.div>
-          </AnimatePresence>
-
-          <div className="flex gap-4 mt-8">
-            <a href={project.github} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-2 glass px-5 py-2.5 rounded-full text-sm text-white border border-white/10 hover:border-primary/50 transition-colors">
-              <FaGithub /> GitHub
-            </a>
-            <a href={project.live} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-primary px-5 py-2.5 rounded-full text-sm text-white font-semibold hover:bg-primary-light transition-colors shadow-glow-blue">
-              <FaExternalLinkAlt size={12} /> Live Demo
-            </a>
+                </div>
+              </div>
+              {/* MacBook Base */}
+              <div className="w-[110%] h-3 bg-gradient-to-b from-[#444] to-[#111] absolute -bottom-3 -left-[5%] rounded-b-xl border-t border-[#666] shadow-[0_20px_40px_rgba(0,0,0,0.8)] flex justify-center">
+                <div className="w-24 h-full bg-[#333] rounded-t-md" />
+              </div>
+            </div>
           </div>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-});
-ProjectModal.displayName = 'ProjectModal';
 
-// ── Project Card — memoized, no layout prop ────────────────────────────────────
-const ProjectCard = memo(({ project, onClick }) => {
-  const handleClick = useCallback(() => onClick(project), [project, onClick]);
-
-  return (
-    <motion.div
-      /* Removed `layout` prop — eliminated expensive grid relayout on filter */
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-      className="project-card glass-card rounded-3xl overflow-hidden border border-white/5 group cursor-pointer"
-      onClick={handleClick}
-    >
-      <div className="relative h-52 overflow-hidden bg-black/50">
-        <img
-          src={project.image}
-          alt={project.title}
-          loading="lazy"
-          decoding="async"
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-
-        {project.featured && (
-          <div className="absolute top-4 left-4 glass rounded-full px-3 py-1 text-xs font-semibold text-primary border border-primary/30">
-            ★ Featured
-          </div>
-        )}
-        <div className="absolute top-4 right-4 glass rounded-full px-3 py-1 text-xs text-gray-400 border border-white/10">
-          {project.year}
-        </div>
-
-        <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <span className="glass px-5 py-2.5 rounded-full text-white text-sm font-semibold border border-white/20 -translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-            View Case Study →
-          </span>
         </div>
       </div>
 
-      <div className="p-6">
-        <span className="text-xs font-fira text-primary/70 uppercase tracking-widest">{project.category}</span>
-        <h3 className="font-syne text-xl font-bold text-white mt-1 mb-2 group-hover:text-gradient transition-all duration-500">
-          {project.title}
-        </h3>
-        <p className="text-gray-500 text-sm leading-relaxed mb-4 line-clamp-2">{project.description}</p>
-
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {project.tech.slice(0, 4).map((t) => (
-            <span key={t} className="text-xs bg-white/5 border border-white/8 rounded-full px-2.5 py-0.5 text-gray-400 font-fira">
-              {t}
-            </span>
-          ))}
-          {project.tech.length > 4 && (
-            <span className="text-xs text-gray-600 px-2.5 py-0.5">+{project.tech.length - 4}</span>
-          )}
-        </div>
-
-        <div className="flex gap-3 pt-2 border-t border-white/5">
-          <a href={project.github} target="_blank" rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-white transition-colors">
-            <FaGithub size={13} /> Code
-          </a>
-          <a href={project.live} target="_blank" rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-primary transition-colors">
-            <FaExternalLinkAlt size={11} /> Live
-          </a>
-        </div>
+      {/* ── Scroll Spacers ── */}
+      <div className="relative w-full" style={{ height: `calc(${SHOWCASE_PROJECTS.length} * max(60vh, 100vh))` }}>
+        {SHOWCASE_PROJECTS.map((project, i) => (
+          <div
+            key={`spacer-${project.id}`}
+            data-index={i}
+            className="project-scroll-spacer w-full h-[60vh] md:h-[100vh] pointer-events-none invisible"
+          />
+        ))}
       </div>
-    </motion.div>
-  );
-});
-ProjectCard.displayName = 'ProjectCard';
-
-// ── Main Section ───────────────────────────────────────────────────────────────
-const Projects = () => {
-  const [category, setCategory] = useState('All');
-  const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState(null);
-
-  // useMemo — filter only recomputes when category or search changes
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    return projects.filter((p) => {
-      const matchCat = category === 'All' || p.category === category;
-      const matchSearch = !q ||
-        p.title.toLowerCase().includes(q) ||
-        p.tech.some((t) => t.toLowerCase().includes(q));
-      return matchCat && matchSearch;
-    });
-  }, [category, search]);
-
-  const handleSelect   = useCallback((p) => setSelected(p), []);
-  const handleDeselect = useCallback(() => setSelected(null), []);
-
-  return (
-    <section id="projects" className="relative py-24 md:py-36 bg-[#0A0A0A] overflow-hidden">
-      <div className="absolute right-0 bottom-1/4 w-[500px] h-[500px] bg-secondary/8 blur-[130px] rounded-full pointer-events-none" />
-
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
-        <motion.div
-          variants={staggerContainer(0.1)}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.1 }}
-          className="text-center mb-16"
-        >
-          <motion.p variants={fadeInUp} className="text-primary font-fira text-sm mb-3 tracking-widest uppercase">04 — Projects</motion.p>
-          <motion.h2 variants={fadeInUp} className="font-syne text-4xl md:text-6xl font-bold text-white">
-            Shipped <span className="text-gradient">Products.</span>
-          </motion.h2>
-          <motion.p variants={fadeInUp} className="text-gray-500 mt-4 max-w-xl mx-auto">
-            Real-world applications built with care — each one solving a problem, learning something new.
-          </motion.p>
-        </motion.div>
-
-        {/* Controls */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-12">
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setCategory(cat)}
-                className={`px-5 py-2 rounded-full text-sm font-medium capitalize transition-all duration-300 ${
-                  category === cat
-                    ? 'bg-primary text-white shadow-glow-blue'
-                    : 'glass text-gray-400 hover:text-white border border-white/10'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-
-          <div className="relative w-full md:w-64">
-            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" size={13} />
-            <input
-              type="text"
-              placeholder="Search projects or tech..."
-              defaultValue={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full glass border border-white/10 rounded-full pl-10 pr-10 py-2.5 text-sm text-white placeholder-gray-600 outline-none focus:border-primary/50 transition-colors bg-transparent"
-            />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-white">
-                <FaTimes size={12} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Grid — NO layout prop */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence mode="popLayout">
-            {filtered.map((project) => (
-              <ProjectCard key={project.id} project={project} onClick={handleSelect} />
-            ))}
-          </AnimatePresence>
-        </div>
-
-        {filtered.length === 0 && (
-          <div className="text-center py-20 text-gray-600">
-            <p className="text-4xl mb-4">🔍</p>
-            <p>No projects found. Try a different search.</p>
-          </div>
-        )}
-      </div>
-
-      <AnimatePresence>
-        {selected && <ProjectModal project={selected} onClose={handleDeselect} />}
-      </AnimatePresence>
-
-      {/* CSS hover lift for cards — no JS animation on hover */}
-      <style>{`
-        .project-card {
-          transition: transform 0.35s cubic-bezier(0.16,1,0.3,1),
-                      box-shadow 0.35s cubic-bezier(0.16,1,0.3,1);
-        }
-        .project-card:hover {
-          transform: translateY(-8px) translateZ(0);
-          box-shadow: 0 30px 60px rgba(37,99,235,0.15), 0 0 0 1px rgba(37,99,235,0.2);
-        }
-      `}</style>
     </section>
   );
-};
+});
+Projects.displayName = 'Projects';
 
 export default Projects;

@@ -60,9 +60,9 @@ const projects = [
     title: 'TaskFlow — Project Management App',
     description: 'A Kanban-style project management tool with drag-and-drop boards, task assignments, and real-time collaboration.',
     longDescription: 'TaskFlow is a modern project management application inspired by Linear and Notion. It features drag-and-drop Kanban boards, task assignments, due date tracking, file attachments, and real-time collaboration via WebSockets.',
-    image: 'https://images.unsplash.com/photo-1611224885990-ab7363d1f2b9?w=1200&q=85',
+    image: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=1200&q=85',
     images: [
-      'https://images.unsplash.com/photo-1611224885990-ab7363d1f2b9?w=800&q=85',
+      'https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=800&q=85',
       'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=800&q=85',
     ],
     category: 'fullstack',

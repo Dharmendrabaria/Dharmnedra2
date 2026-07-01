@@ -2,12 +2,11 @@ import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaStar, FaChevronLeft, FaChevronRight, FaQuoteLeft } from 'react-icons/fa';
 import { TESTIMONIALS } from '../../utils/constants';
-import { staggerContainer, fadeInUp } from '../../utils/animations';
 
 const StarRating = memo(({ rating }) => (
-  <div className="flex gap-1">
+  <div className="flex gap-0.5">
     {Array.from({ length: 5 }).map((_, i) => (
-      <FaStar key={i} size={14} className={i < rating ? 'text-yellow-400' : 'text-gray-700'} />
+      <FaStar key={i} size={12} className={i < rating ? 'text-yellow-400' : 'text-gray-800'} />
     ))}
   </div>
 ));
@@ -17,97 +16,112 @@ const Testimonials = memo(() => {
   const [idx, setIdx] = useState(0);
   const timerRef = useRef(null);
 
-  const next = useCallback(() => setIdx((i) => (i + 1) % TESTIMONIALS.length), []);
-  const prev = useCallback(() => setIdx((i) => (i - 1 + TESTIMONIALS.length) % TESTIMONIALS.length), []);
+  const next = useCallback(() => setIdx(i => (i + 1) % TESTIMONIALS.length), []);
+  const prev = useCallback(() => setIdx(i => (i - 1 + TESTIMONIALS.length) % TESTIMONIALS.length), []);
 
   const resetTimer = useCallback(() => {
     clearInterval(timerRef.current);
-    timerRef.current = setInterval(next, 5000);
+    timerRef.current = setInterval(next, 6000);
   }, [next]);
 
   useEffect(() => {
-    timerRef.current = setInterval(next, 5000);
+    timerRef.current = setInterval(next, 6000);
     return () => clearInterval(timerRef.current);
   }, [next]);
 
   const handleNext = useCallback(() => { next(); resetTimer(); }, [next, resetTimer]);
   const handlePrev = useCallback(() => { prev(); resetTimer(); }, [prev, resetTimer]);
-  const handleDot = useCallback((i) => { setIdx(i); resetTimer(); }, [resetTimer]);
+  const handleDot  = useCallback((i) => { setIdx(i); resetTimer(); }, [resetTimer]);
+
+  const t = TESTIMONIALS[idx];
 
   return (
-    <section id="testimonials" className="relative py-24 md:py-36 bg-[#0A0A0A] overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(124,58,237,0.05) 0%, transparent 70%)' }} />
+    <section id="testimonials" className="relative py-28 md:py-40 overflow-hidden" style={{ background: '#080808' }}>
+      {/* Background */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(124,58,237,0.05) 0%, transparent 70%)' }} />
 
-      <div className="max-w-5xl mx-auto px-6 lg:px-12">
-        <motion.div
-          variants={staggerContainer(0.1)}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.15 }}
-          className="text-center mb-16"
-        >
-          <motion.p variants={fadeInUp} className="text-primary font-fira text-sm mb-3 tracking-widest uppercase">08 — Testimonials</motion.p>
-          <motion.h2 variants={fadeInUp} className="font-syne text-4xl md:text-6xl font-bold text-white">
-            What People <span className="text-gradient">Say.</span>
-          </motion.h2>
-        </motion.div>
+      {/* Divider */}
+      <motion.div
+        initial={{ scaleX: 0 }}
+        whileInView={{ scaleX: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }}
+        className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent origin-center"
+      />
 
+      <div className="max-w-4xl mx-auto px-6 lg:px-12 relative z-10">
+        {/* Header */}
+        <div className="text-center mb-16">
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="section-label mb-4"
+          >08 — Testimonials</motion.p>
+          <div className="overflow-hidden">
+            <motion.h2
+              initial={{ y: '100%' }}
+              whileInView={{ y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
+              className="heading-lg"
+            >
+              What People <span className="text-gradient">Say.</span>
+            </motion.h2>
+          </div>
+        </div>
+
+        {/* Testimonial card — scale + opacity transition */}
         <div className="relative">
           <AnimatePresence mode="wait">
             <motion.div
               key={idx}
-              initial={{ opacity: 0, x: 60, scale: 0.95 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: -60, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -20 }}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="glass-card rounded-3xl p-10 md:p-14 border border-white/5 text-center"
+              className="glass-premium rounded-3xl p-10 md:p-14 border border-white/6 text-center"
             >
-              {/* Quote icon */}
-              <FaQuoteLeft size={40} className="text-primary/20 mx-auto mb-8" />
+              <FaQuoteLeft size={36} className="text-primary/15 mx-auto mb-8" />
 
-              <p className="text-gray-300 text-lg md:text-xl leading-relaxed mb-10 font-light">
-                "{TESTIMONIALS[idx].review}"
+              <p className="text-gray-300 text-lg md:text-xl leading-relaxed mb-10 font-light max-w-2xl mx-auto">
+                "{t.review}"
               </p>
 
-              {/* Author */}
               <div className="flex flex-col items-center gap-3">
                 <div className="relative">
-                  <img
-                    src={TESTIMONIALS[idx].avatar}
-                    alt={TESTIMONIALS[idx].name}
-                    loading="lazy"
-                    decoding="async"
+                  <img src={t.avatar} alt={t.name} loading="lazy" decoding="async"
                     className="w-14 h-14 rounded-full object-cover border-2 border-primary/30"
                   />
-                  <div className="absolute inset-0 rounded-full shadow-glow-blue opacity-50" />
+                  <div className="absolute inset-0 rounded-full" style={{ boxShadow: '0 0 16px rgba(37,99,235,0.4)' }} />
                 </div>
                 <div>
-                  <h4 className="text-white font-semibold">{TESTIMONIALS[idx].name}</h4>
-                  <p className="text-gray-500 text-sm">{TESTIMONIALS[idx].role} · {TESTIMONIALS[idx].company}</p>
+                  <h4 className="font-grotesk font-semibold text-white">{t.name}</h4>
+                  <p className="text-gray-600 text-sm">{t.role} · {t.company}</p>
                 </div>
-                <StarRating rating={TESTIMONIALS[idx].rating} />
+                <StarRating rating={t.rating} />
               </div>
             </motion.div>
           </AnimatePresence>
 
           {/* Navigation */}
           <div className="flex items-center justify-center gap-6 mt-8">
-            <button onClick={handlePrev} className="w-11 h-11 rounded-full glass border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:border-primary/50 transition-colors">
-              <FaChevronLeft size={14} />
+            <button onClick={handlePrev}
+              className="w-10 h-10 rounded-full glass-premium border border-white/8 flex items-center justify-center text-gray-500 hover:text-white hover:border-primary/40 transition-all duration-300">
+              <FaChevronLeft size={13} />
             </button>
-
             <div className="flex gap-2">
               {TESTIMONIALS.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleDot(i)}
-                  className={`rounded-full transition-all duration-300 ${i === idx ? 'w-8 h-2 bg-primary' : 'w-2 h-2 bg-white/20 hover:bg-white/40'}`}
+                <button key={i} onClick={() => handleDot(i)}
+                  className={`rounded-full transition-all duration-300 ${
+                    i === idx ? 'w-8 h-1.5 bg-primary shadow-glow-blue' : 'w-1.5 h-1.5 bg-white/15 hover:bg-white/30'
+                  }`}
                 />
               ))}
             </div>
-
-            <button onClick={handleNext} className="w-11 h-11 rounded-full glass border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:border-primary/50 transition-colors">
-              <FaChevronRight size={14} />
+            <button onClick={handleNext}
+              className="w-10 h-10 rounded-full glass-premium border border-white/8 flex items-center justify-center text-gray-500 hover:text-white hover:border-primary/40 transition-all duration-300">
+              <FaChevronRight size={13} />
             </button>
           </div>
         </div>
