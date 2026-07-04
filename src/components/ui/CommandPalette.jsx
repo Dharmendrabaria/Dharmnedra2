@@ -93,7 +93,7 @@ const CommandPalette = memo(({ isOpen, onClose }) => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[1000] flex items-start justify-center pt-[15vh] px-4"
+          className="fixed inset-0 z-[1000] flex items-start justify-center pt-4 md:pt-[15vh] px-4"
         >
           {/* Backdrop */}
           <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => onClose(false)} />
@@ -104,27 +104,26 @@ const CommandPalette = memo(({ isOpen, onClose }) => {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: -20 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="relative w-full max-w-2xl bg-[#0D0D0D]/90 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-            style={{ maxHeight: '60vh' }}
+            className="relative w-full max-w-2xl bg-[#0D0D0D]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[85dvh] md:max-h-[60vh]"
           >
             {/* Search Input */}
-            <div className="flex items-center px-4 border-b border-white/10">
-              <FaSearch className="text-gray-500 mr-3" />
+            <div className="flex items-center px-4 border-b border-white/10 shrink-0">
+              <FaSearch className="text-gray-500 mr-3 shrink-0" />
               <input
                 ref={inputRef}
                 type="text"
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Search commands, projects, or sections..."
-                className="w-full bg-transparent text-white font-inter text-lg py-5 outline-none placeholder-gray-600"
+                className="w-full bg-transparent text-white font-inter text-base md:text-lg py-4 md:py-5 outline-none placeholder-gray-600"
               />
-              <div className="flex items-center gap-1 text-[10px] font-jetbrains text-gray-500 bg-white/5 px-2 py-1 rounded">
+              <div className="hidden sm:flex items-center gap-1 text-[10px] font-jetbrains text-gray-500 bg-white/5 px-2 py-1 rounded shrink-0">
                 ESC to close
               </div>
             </div>
 
             {/* Results */}
-            <div className="overflow-y-auto p-2" style={{ maxHeight: 'calc(60vh - 70px)' }}>
+            <div className="overflow-y-auto p-2 flex-1 scroll-smooth">
               {items.length === 0 ? (
                 <div className="py-12 text-center text-gray-500 font-inter text-sm">
                   No results found for "{query}"
@@ -137,15 +136,16 @@ const CommandPalette = memo(({ isOpen, onClose }) => {
                       key={item.id}
                       onMouseEnter={() => setSelectedIndex(index)}
                       onClick={() => { item.action(); onClose(false); }}
-                      className={`flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer transition-colors ${
-                        isSelected ? 'bg-primary/20 text-white' : 'text-gray-400 hover:bg-white/5'
-                      }`}
+                      className={`flex items-center justify-between px-3 md:px-4 py-3 md:py-3.5 rounded-xl cursor-pointer transition-all ${isSelected ? 'bg-primary/20 text-white shadow-sm' : 'text-gray-400 hover:bg-white/5'
+                        }`}
                     >
                       <div className="flex items-center gap-3">
-                        {item.icon ? <item.icon className={isSelected ? 'text-primary' : 'text-gray-500'} /> : <FaArrowRight className={isSelected ? 'text-primary' : 'text-gray-600'} size={12} />}
+                        <div className={`p-1.5 rounded-md ${isSelected ? 'bg-primary/20' : 'bg-white/5'}`}>
+                          {item.icon ? <item.icon className={isSelected ? 'text-primary' : 'text-gray-500'} /> : <FaArrowRight className={isSelected ? 'text-primary' : 'text-gray-500'} size={12} />}
+                        </div>
                         <span className="font-inter text-sm font-medium">{item.label}</span>
                       </div>
-                      <span className="text-[10px] font-jetbrains uppercase tracking-widest text-gray-600">
+                      <span className="text-[9px] md:text-[10px] font-jetbrains uppercase tracking-widest text-gray-600">
                         {item.section}
                       </span>
                     </div>

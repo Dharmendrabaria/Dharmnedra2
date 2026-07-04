@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { motion } from 'framer-motion';
 import { FaGithub, FaCodeBranch, FaStar, FaCode } from 'react-icons/fa';
+import ParticleBackground from '../ui/ParticleBackground';
 
 const StatCard = memo(({ icon: Icon, label, value, delay }) => (
   <motion.div
@@ -31,6 +32,7 @@ const GithubStats = memo(() => {
 
   return (
     <section id="github" className="relative py-28 md:py-40 overflow-hidden" style={{ background: '#080808' }}>
+      <ParticleBackground />
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">

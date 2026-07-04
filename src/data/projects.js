@@ -11,6 +11,7 @@ const projects = [
       'https://images.unsplash.com/photo-1522199755839-a2bacb67c546?w=800&q=85',
       'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=85',
     ],
+    video: 'https://www.w3schools.com/html/mov_bbb.mp4', // Placeholder video for preview
     category: 'fullstack',
     tech: ['React', 'Node.js', 'MongoDB', 'Express', 'Stripe', 'Tailwind CSS', 'Redux Toolkit', 'JWT'],
     features: [
@@ -38,6 +39,7 @@ const projects = [
       'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&q=85',
       'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&q=85',
     ],
+    video: 'https://www.w3schools.com/html/mov_bbb.mp4', // Placeholder video for preview
     category: 'fullstack',
     tech: ['React', 'Node.js', 'MongoDB', 'Socket.io', 'Firebase', 'Framer Motion'],
     features: [
@@ -65,6 +67,7 @@ const projects = [
       'https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=800&q=85',
       'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=800&q=85',
     ],
+    video: 'https://www.w3schools.com/html/mov_bbb.mp4',
     category: 'fullstack',
     tech: ['React', 'Node.js', 'MongoDB', 'Express', 'Socket.io', 'dnd-kit', 'Tailwind CSS'],
     features: [
@@ -91,6 +94,7 @@ const projects = [
     images: [
       'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=800&q=85',
     ],
+    video: 'https://www.w3schools.com/html/mov_bbb.mp4',
     category: 'frontend',
     tech: ['React', 'Chart.js', 'CoinGecko API', 'Tailwind CSS', 'Framer Motion'],
     features: [
@@ -116,6 +120,7 @@ const projects = [
     images: [
       'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=85',
     ],
+    video: 'https://www.w3schools.com/html/mov_bbb.mp4',
     category: 'fullstack',
     tech: ['React', 'Node.js', 'MongoDB', 'Express', 'Socket.io', 'PDF generation'],
     features: [

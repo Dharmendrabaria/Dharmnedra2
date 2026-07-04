@@ -3,10 +3,10 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { SERVICES } from '../../utils/constants';
 
 const PROCESS_STEPS = [
-  { n: '01', title: 'Discover',   desc: 'Deep dive into your goals, users, and constraints.' },
-  { n: '02', title: 'Design',     desc: 'Wireframes, design system, and component architecture.' },
-  { n: '03', title: 'Build',      desc: 'Production-grade code with tests and performance budgets.' },
-  { n: '04', title: 'Ship',       desc: 'CI/CD deployment with monitoring and iterative improvement.' },
+  { n: '01', title: 'Discover', desc: 'Deep dive into your goals, users, and constraints.' },
+  { n: '02', title: 'Design', desc: 'Wireframes, design system, and component architecture.' },
+  { n: '03', title: 'Build', desc: 'Production-grade code with tests and performance budgets.' },
+  { n: '04', title: 'Ship', desc: 'CI/CD deployment with monitoring and iterative improvement.' },
 ];
 
 const ServiceCard = memo(({ icon, title, description, features, index }) => (

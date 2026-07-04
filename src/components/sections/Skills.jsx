@@ -1,66 +1,68 @@
-import React, { memo, useState, useMemo } from 'react';
+import React, { memo, useState, useMemo, useCallback } from 'react';
+import { emit } from '../../utils/events';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
+import {
   FaReact, FaNodeJs, FaGithub, FaFigma, FaCodeBranch, FaSearch, FaTerminal
 } from 'react-icons/fa';
-import { 
-  SiTypescript, SiExpress, SiMongodb, SiTailwindcss, SiRedux, SiFirebase, 
+import ParticleBackground from '../ui/ParticleBackground';
+import {
+  SiTypescript, SiExpress, SiMongodb, SiTailwindcss, SiRedux, SiFirebase,
   SiVite, SiVercel, SiJavascript, SiJsonwebtokens
 } from 'react-icons/si';
 
 // ── DATA ─────────────────────────────────────────────────────────────
 const TECHNOLOGIES = [
-  { 
+  {
     id: 'react', name: 'React', category: 'Frontend', icon: FaReact, color: '#3b82f6',
-    exp: '2+ Years', level: 'Expert', 
+    exp: '2+ Years', level: 'Expert',
     desc: 'The core of my frontend architecture. I build highly interactive SPAs using custom hooks, Context API, and strictly optimized render cycles.',
     projects: ['ReelMatic', 'ShopSphere', 'Portfolio'],
     code: `function useMagneticCursor() {\n  const cursor = useRef(null);\n  useEffect(() => {\n    // requestAnimationFrame logic\n    // bypassing React state for 60fps\n  }, []);\n}`,
     libraries: ['Framer Motion', 'React Router', 'Lucide']
   },
-  { 
+  {
     id: 'node', name: 'Node.js', category: 'Backend', icon: FaNodeJs, color: '#22c55e',
-    exp: '2 Years', level: 'Advanced', 
+    exp: '2 Years', level: 'Advanced',
     desc: 'My go-to runtime for building scalable backend services. I focus on event-driven architecture and asynchronous performance.',
     projects: ['DevConnect', 'ShopSphere'],
     code: `app.use(express.json());\n\napp.post('/api/v1/auth', async (req, res) => {\n  const token = generateJWT(user._id);\n  res.cookie('token', token);\n  return res.status(200).json({ success: true });\n});`,
     libraries: ['Socket.io', 'Mongoose', 'Bcrypt']
   },
-  { 
+  {
     id: 'mongodb', name: 'MongoDB', category: 'Database', icon: SiMongodb, color: '#22c55e',
-    exp: '2 Years', level: 'Advanced', 
+    exp: '2 Years', level: 'Advanced',
     desc: 'NoSQL database used for high-volume data operations. I specialize in complex aggregation pipelines and indexing strategies.',
     projects: ['TaskFlow', 'RestaurantPOS'],
     code: `db.orders.aggregate([\n  { $match: { status: "completed" } },\n  { $group: { \n      _id: "$userId", \n      total: { $sum: "$amount" } \n  }}\n])`,
     libraries: ['Mongoose', 'MongoDB Atlas']
   },
-  { 
+  {
     id: 'js', name: 'JavaScript', category: 'Language', icon: SiJavascript, color: '#eab308',
-    exp: '3+ Years', level: 'Expert', 
+    exp: '3+ Years', level: 'Expert',
     desc: 'My primary programming language. Deep understanding of ES6+, closures, the event loop, and DOM manipulation.',
     projects: ['All Projects'],
     code: `const optimizedDebounce = (fn, d) => {\n  let id;\n  return (...args) => {\n    clearTimeout(id);\n    id = setTimeout(() => fn(...args), d);\n  }\n}`,
     libraries: ['ES6+', 'DOM API', 'WebSockets']
   },
-  { 
+  {
     id: 'tailwind', name: 'Tailwind CSS', category: 'Frontend', icon: SiTailwindcss, color: '#06b6d4',
-    exp: '2 Years', level: 'Expert', 
+    exp: '2 Years', level: 'Expert',
     desc: 'Utility-first CSS for rapid UI development. I create complex, responsive layouts with custom design tokens.',
     projects: ['Portfolio', 'ShopSphere'],
     code: `// Custom Tailwind Config\nmodule.exports = {\n  theme: {\n    extend: {\n      animation: {\n        'blob': 'blob 7s infinite',\n      }\n    }\n  }\n}`,
     libraries: ['PostCSS', 'Autoprefixer']
   },
-  { 
+  {
     id: 'express', name: 'Express.js', category: 'Backend', icon: SiExpress, color: '#9ca3af',
-    exp: '2 Years', level: 'Advanced', 
+    exp: '2 Years', level: 'Advanced',
     desc: 'Minimalist web framework for Node.js. Used for creating robust RESTful APIs and middleware chains.',
     projects: ['DevConnect', 'ShopSphere'],
     code: `const authMiddleware = (req, res, next) => {\n  const token = req.headers.authorization;\n  if (!token) return res.sendStatus(401);\n  next();\n}`,
     libraries: ['Cors', 'Helmet', 'Morgan']
   },
-  { 
+  {
     id: 'typescript', name: 'TypeScript', category: 'Language', icon: SiTypescript, color: '#3b82f6',
-    exp: '2 Years', level: 'Intermediate', 
+    exp: '2 Years', level: 'Intermediate',
     desc: 'Adding strict static typing to JavaScript for enterprise-grade application stability and better DX.',
     projects: ['Next-Gen CMS'],
     code: `interface User {\n  id: string;\n  role: 'admin' | 'user';\n  permissions: string[];\n}\n\nfunction checkAccess(u: User) {\n  return u.role === 'admin';\n}`,
@@ -76,9 +78,20 @@ const Skills = memo(() => {
   const [activeCategory, setActiveCategory] = useState('All');
   const [activeTechId, setActiveTechId] = useState(TECHNOLOGIES[0].id);
 
+  const handleTechClick = useCallback((tech) => {
+    setActiveTechId(tech.id);
+    // Dispatch cross-section filter event
+    emit('skill:filter', { tech: tech.name });
+    emit('toast', { message: `Showing ${tech.name} Projects`, icon: '🔍' });
+    // Scroll to projects smoothly
+    setTimeout(() => {
+      document.querySelector('#projects')?.scrollIntoView({ behavior: 'smooth' });
+    }, 400);
+  }, []);
+
   // Derived state
   const activeTech = useMemo(() => TECHNOLOGIES.find(t => t.id === activeTechId), [activeTechId]);
-  
+
   const filteredTechs = useMemo(() => {
     return TECHNOLOGIES.filter(t => {
       const matchesSearch = t.name.toLowerCase().includes(search.toLowerCase());
@@ -94,14 +107,14 @@ const Skills = memo(() => {
 
   return (
     <section id="skills" className="relative py-32 overflow-hidden bg-[#030303] min-h-[100vh]">
-      
+      <ParticleBackground />
       {/* Background Ambience */}
-      <div className="absolute inset-0 pointer-events-none opacity-20 mix-blend-screen" 
-           style={{ background: 'radial-gradient(circle at top right, rgba(37,99,235,0.15) 0%, transparent 60%)' }} />
+      <div className="absolute inset-0 pointer-events-none opacity-20 mix-blend-screen"
+        style={{ background: 'radial-gradient(circle at top right, rgba(37,99,235,0.15) 0%, transparent 60%)' }} />
       <div className="absolute inset-0 pointer-events-none opacity-10 mesh-bg" />
 
       <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-30 pointer-events-auto">
-        
+
         {/* Header */}
         <div className="mb-12 md:mb-16">
           <p className="section-label mb-4">02 — Stack Interface</p>
@@ -115,10 +128,10 @@ const Skills = memo(() => {
 
         {/* ── THE SOFTWARE DASHBOARD (Master-Detail View) ── */}
         <div className="w-full rounded-[32px] border border-white/10 bg-[#0a0a0a]/80 backdrop-blur-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col md:flex-row min-h-[700px]">
-          
+
           {/* LEFT SIDEBAR: Index/Master View */}
           <div className="w-full md:w-[320px] shrink-0 border-b md:border-b-0 md:border-r border-white/10 bg-black/40 flex flex-col">
-            
+
             {/* macOS Window Controls (Visual only) */}
             <div className="h-12 flex items-center px-6 gap-2 border-b border-white/5">
               <div className="w-3 h-3 rounded-full bg-red-500/80" />
@@ -129,8 +142,8 @@ const Skills = memo(() => {
             {/* Search Bar */}
             <div className="p-5 border-b border-white/5 relative">
               <FaSearch className="absolute left-8 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="Search stack..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
@@ -144,9 +157,8 @@ const Skills = memo(() => {
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-jetbrains transition-all duration-300 ${
-                    activeCategory === cat ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'
-                  }`}
+                  className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-jetbrains transition-all duration-300 ${activeCategory === cat ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'
+                    }`}
                 >
                   {cat}
                 </button>
@@ -164,13 +176,12 @@ const Skills = memo(() => {
                   return (
                     <button
                       key={tech.id}
-                      onClick={() => setActiveTechId(tech.id)}
-                      className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 relative group text-left ${
-                        isActive ? 'bg-white/10' : 'hover:bg-white/5'
-                      }`}
+                      onClick={() => handleTechClick(tech)}
+                      className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 relative group text-left ${isActive ? 'bg-white/10' : 'hover:bg-white/5'
+                        }`}
                     >
                       {isActive && (
-                        <motion.div 
+                        <motion.div
                           layoutId="activeIndicator"
                           className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1/2 bg-primary rounded-r-full"
                           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
@@ -206,7 +217,7 @@ const Skills = memo(() => {
                 >
                   {/* Header */}
                   <div className="flex items-center gap-6 mb-10">
-                    <div 
+                    <div
                       className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl shadow-2xl relative"
                       style={{ backgroundColor: `${activeTech.color}15`, border: `1px solid ${activeTech.color}40` }}
                     >
@@ -228,10 +239,10 @@ const Skills = memo(() => {
 
                   {/* Grid Layout for details */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1">
-                    
+
                     {/* Left Column */}
                     <div className="space-y-6">
-                      
+
                       {/* Description Card */}
                       <div className="glass-premium p-6 rounded-2xl border border-white/5">
                         <div className="text-xs font-jetbrains text-gray-500 uppercase tracking-widest mb-3">Architecture Role</div>
@@ -268,7 +279,7 @@ const Skills = memo(() => {
 
                     {/* Right Column (Code Window + Projects) */}
                     <div className="space-y-6 flex flex-col h-full">
-                      
+
                       {/* Code Snippet Window */}
                       <div className="glass-premium rounded-2xl border border-white/10 overflow-hidden flex-1 min-h-[220px] flex flex-col">
                         <div className="bg-black/60 px-4 py-2 flex items-center justify-between border-b border-white/5">

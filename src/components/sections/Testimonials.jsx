@@ -31,7 +31,7 @@ const Testimonials = memo(() => {
 
   const handleNext = useCallback(() => { next(); resetTimer(); }, [next, resetTimer]);
   const handlePrev = useCallback(() => { prev(); resetTimer(); }, [prev, resetTimer]);
-  const handleDot  = useCallback((i) => { setIdx(i); resetTimer(); }, [resetTimer]);
+  const handleDot = useCallback((i) => { setIdx(i); resetTimer(); }, [resetTimer]);
 
   const t = TESTIMONIALS[idx];
 
@@ -113,9 +113,8 @@ const Testimonials = memo(() => {
             <div className="flex gap-2">
               {TESTIMONIALS.map((_, i) => (
                 <button key={i} onClick={() => handleDot(i)}
-                  className={`rounded-full transition-all duration-300 ${
-                    i === idx ? 'w-8 h-1.5 bg-primary shadow-glow-blue' : 'w-1.5 h-1.5 bg-white/15 hover:bg-white/30'
-                  }`}
+                  className={`rounded-full transition-all duration-300 ${i === idx ? 'w-8 h-1.5 bg-primary shadow-glow-blue' : 'w-1.5 h-1.5 bg-white/15 hover:bg-white/30'
+                    }`}
                 />
               ))}
             </div>

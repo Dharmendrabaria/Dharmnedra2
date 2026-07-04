@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { motion } from 'framer-motion';
-import { FaGraduationCap, FaLaptopCode, FaMapMarkerAlt, FaCoffee } from 'react-icons/fa';
+import { FaGraduationCap, FaLaptopCode, FaMapMarkerAlt } from 'react-icons/fa';
+import { FiCoffee } from 'react-icons/fi';
 
 const BentoCard = memo(({ children, className = '', delay = 0 }) => (
   <motion.div
@@ -33,10 +34,10 @@ const About = memo(() => {
         </div>
 
         {/* ── BENTO GRID ── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-[220px]">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6 auto-rows-auto md:auto-rows-[220px]">
           
           {/* Card 1: Core Identity (2x2) */}
-          <BentoCard className="md:col-span-2 lg:col-span-2 row-span-2 p-8 lg:p-10 flex flex-col justify-between" delay={0.1}>
+          <BentoCard className="md:col-span-2 lg:col-span-2 md:row-span-2 p-8 lg:p-10 flex flex-col justify-between min-h-[280px] md:min-h-0" delay={0.1}>
             <div>
               <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary mb-6">
                 <FaLaptopCode size={24} />
@@ -86,11 +87,11 @@ const About = memo(() => {
 
           {/* Card 5: Philosophy (1x2) - Adjusts based on screen */}
           <BentoCard className="col-span-1 md:col-span-1 lg:col-span-2 row-span-1 p-8 relative overflow-hidden flex flex-col justify-center" delay={0.5}>
-             <div className="absolute -right-10 -bottom-10 opacity-10">
-               <FaCoffee size={140} />
+             <div className="absolute -right-6 -bottom-6 opacity-[0.15]">
+               <FiCoffee size={160} className="transform -rotate-12" strokeWidth={1} />
              </div>
-             <h4 className="font-grotesk text-2xl font-bold text-white mb-3">Powered by Coffee & Code</h4>
-             <p className="text-sm text-gray-400 max-w-sm">
+             <h4 className="font-grotesk text-2xl font-bold text-white mb-3 relative z-10">Powered by Coffee & Code</h4>
+             <p className="text-sm text-gray-400 max-w-sm relative z-10">
                Constantly experimenting with new frameworks, optimizing build tools, and hunting for perfect 60FPS animations.
              </p>
           </BentoCard>

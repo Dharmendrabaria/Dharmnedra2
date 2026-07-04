@@ -6,6 +6,7 @@ import { TypeAnimation } from 'react-type-animation';
 import { FaDownload, FaArrowRight, FaGithub, FaLinkedin, FaWhatsapp, FaMapMarkerAlt } from 'react-icons/fa';
 import { HiArrowDown } from 'react-icons/hi';
 import { SITE, STATS } from '../../utils/constants';
+import ParticleBackground from '../ui/ParticleBackground';
 
 // ── Stars field ─────────────────────────────────────────────────────────────
 const StarField = memo(() => {
@@ -250,6 +251,7 @@ const Hero = () => {
       </div>
 
       {/* ── Aurora background ── */}
+      <ParticleBackground />
       <div className="absolute inset-0 z-0 pointer-events-none aurora-bg" />
 
       {/* ── Mouse spotlight ── */}
@@ -262,7 +264,7 @@ const Hero = () => {
       {/* ── Main content ── */}
       <motion.div
         style={{ y: heroY, opacity: heroOpacity }}
-        className="relative z-10 max-w-7xl mx-auto px-6 lg:px-12 w-full pt-24 pb-12"
+        className="relative z-10 max-w-7xl mx-auto px-5 lg:px-12 w-full pt-32 pb-16 md:pt-24 md:pb-12"
       >
         <div className="grid lg:grid-cols-2 gap-16 items-center">
 
@@ -296,32 +298,32 @@ const Hero = () => {
             </motion.div>
 
             {/* Main headline — clipped reveal */}
-            <div className="overflow-hidden mb-3">
+            <div className="overflow-hidden mb-2 md:mb-3">
               <motion.h1
                 initial={{ y: '100%', opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
-                className="font-grotesk text-5xl md:text-7xl font-bold text-white leading-[1.02] tracking-tight"
+                className="font-grotesk text-4xl sm:text-5xl md:text-7xl font-bold text-white leading-[1.05] md:leading-[1.02] tracking-tight"
               >
                 Building
               </motion.h1>
             </div>
-            <div className="overflow-hidden mb-3">
+            <div className="overflow-hidden mb-2 md:mb-3">
               <motion.h1
                 initial={{ y: '100%', opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.55, duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
-                className="font-grotesk text-5xl md:text-7xl font-bold leading-[1.02] tracking-tight"
+                className="font-grotesk text-4xl sm:text-5xl md:text-7xl font-bold leading-[1.05] md:leading-[1.02] tracking-tight"
               >
                 <span className="text-gradient-animate">scalable digital</span>
               </motion.h1>
             </div>
-            <div className="overflow-hidden mb-8">
+            <div className="overflow-hidden mb-6 md:mb-8">
               <motion.h1
                 initial={{ y: '100%', opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.7, duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
-                className="font-grotesk text-5xl md:text-7xl font-bold text-white leading-[1.02] tracking-tight"
+                className="font-grotesk text-4xl sm:text-5xl md:text-7xl font-bold text-white leading-[1.05] md:leading-[1.02] tracking-tight"
               >
                 experiences.
               </motion.h1>
@@ -361,15 +363,15 @@ const Hero = () => {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.2, duration: 0.7 }}
-              className="flex flex-wrap gap-3 mb-10"
+              className="flex flex-col sm:flex-row flex-wrap gap-3 mb-10 w-full sm:w-auto"
             >
-              <a href="#projects" onClick={scrollToProjects} className="btn-primary">
+              <a href="#projects" onClick={scrollToProjects} className="btn-primary justify-center w-full sm:w-auto">
                 View My Work <FaArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
               </a>
-              <a href={SITE.resumeURL} download className="btn-glass">
+              <a href={SITE.resumeURL} download className="btn-glass justify-center w-full sm:w-auto">
                 <FaDownload size={13} /> Resume
               </a>
-              <a href={SITE.whatsapp} target="_blank" rel="noopener noreferrer" className="btn-glass">
+              <a href={SITE.whatsapp} target="_blank" rel="noopener noreferrer" className="btn-glass justify-center w-full sm:w-auto">
                 <FaWhatsapp size={13} className="text-green-400" /> Let's Talk
               </a>
             </motion.div>
@@ -431,10 +433,10 @@ const Hero = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.5, duration: 0.7 }}
-          className="flex gap-3 flex-wrap mt-8 lg:hidden"
+          className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-8 lg:hidden w-full"
         >
           <StatPill value="15+" label="Projects" color="primary" delay={1.5} />
-          <StatPill value="20+" label="Technologies" color="purple" delay={1.6} />
+          <StatPill value="20+" label="Techs" color="purple" delay={1.6} />
           <StatPill value="2+" label="Years" color="cyan" delay={1.7} />
         </motion.div>
       </motion.div>

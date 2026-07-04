@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { FaPaperPlane, FaEnvelope, FaMapMarkerAlt, FaWhatsapp, FaLinkedin, FaGithub } from 'react-icons/fa';
 import { SITE } from '../../utils/constants';
 import { sendEmail } from '../../services/emailService';
+import ParticleBackground from '../ui/ParticleBackground';
 
 const ContactMethod = memo(({ icon: Icon, title, value, href, delay }) => (
   <motion.a
@@ -87,9 +88,10 @@ const Contact = memo(() => {
 
   return (
     <section id="contact" ref={sectionRef} className="relative py-28 md:py-40 overflow-hidden" style={{ background: '#0D0D0D' }}>
+      <ParticleBackground />
       {/* Background Aurora */}
       <div className="absolute inset-0 pointer-events-none aurora-bg opacity-30" />
-      
+
       {/* Divider */}
       <motion.div
         initial={{ scaleX: 0 }}
@@ -101,7 +103,7 @@ const Contact = memo(() => {
 
       <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
         <div className="grid lg:grid-cols-5 gap-16 lg:gap-8 items-center">
-          
+
           {/* Left Column */}
           <div className="lg:col-span-2">
             <motion.p
@@ -131,7 +133,7 @@ const Contact = memo(() => {
               transition={{ delay: 0.2 }}
               className="text-gray-500 text-[15px] leading-relaxed mb-12 max-w-md"
             >
-              Have a project in mind, looking for a developer, or just want to chat? 
+              Have a project in mind, looking for a developer, or just want to chat?
               I'm always open to discussing product design work or partnership opportunities.
             </motion.p>
 
@@ -164,7 +166,7 @@ const Contact = memo(() => {
           >
             {/* Glow under form */}
             <div className="absolute inset-0 bg-primary/20 blur-[100px] rounded-full pointer-events-none" />
-            
+
             <motion.form
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}

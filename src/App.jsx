@@ -9,7 +9,9 @@ import Footer from './components/layout/Footer';
 import ScrollProgressBar from './components/ui/ScrollProgressBar';
 import FloatingDock from './components/ui/FloatingDock';
 import CommandPalette from './components/ui/CommandPalette';
-import EasterEggs from './components/ui/EasterEggs';
+import EasterEggs, { triggerEasterEgg } from './components/ui/EasterEggs';
+import ParticleBackground from './components/ui/ParticleBackground';
+import Toast from './components/ui/Toast';
 import Home from './pages/Home';
 import { useKonami } from './hooks/useKonami';
 import ConfettiExplosion from './components/ui/ConfettiExplosion';
@@ -60,6 +62,26 @@ function App() {
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
+  // Matrix and Coffee typed sequence listener
+  useEffect(() => {
+    let keyBuffer = '';
+    const handleTyped = (e) => {
+      if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        keyBuffer = (keyBuffer + e.key).slice(-10).toLowerCase();
+
+        if (keyBuffer.includes('matrix')) {
+          triggerEasterEgg('matrix');
+          keyBuffer = '';
+        } else if (keyBuffer.includes('coffee')) {
+          triggerEasterEgg('coffee');
+          keyBuffer = '';
+        }
+      }
+    };
+    window.addEventListener('keydown', handleTyped);
+    return () => window.removeEventListener('keydown', handleTyped);
+  }, []);
+
   // Lenis smooth scroll — synced to GSAP ticker to share a single RAF loop
   // This eliminates the dual-RAF conflict (Lenis RAF vs GSAP RAF)
   useEffect(() => {
@@ -90,9 +112,11 @@ function App() {
 
   return (
     <>
+      <ParticleBackground />
       <CustomCursor />
       <ScrollProgressBar />
       <EasterEggs />
+      <Toast />
       {confetti && <ConfettiExplosion />}
 
       <AnimatePresence mode="wait">
